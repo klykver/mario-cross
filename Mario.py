@@ -4,7 +4,7 @@ class Mario:
         self._y = y
         self._floor = 0
         self._max_floor = max_floor
-        self._state = 'idle'
+        self._state = 'idle'  #initialy mario wil be idle
 
     @property
     def x(self) -> int:

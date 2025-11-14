@@ -56,4 +56,16 @@ class Mario:
         # We will add movement logic here later
         pass
     def draw(self):
-        pyxel.blt(self.x, self.y, 0, 2, 0, 16, 28)
+        if self.state == 'idle':
+            # We use % 30 to create a repeating cycle of 30 frames
+            # If we are in the first half of the cycle (0-14)...
+            if (pyxel.frame_count % 30) < 15:
+                pyxel.blt(self.x, self.y, 0, 24, 0, 41, 30)
+            else:
+                # ...otherwise (we are in the second half, 15-29)
+                pyxel.blt(self.x, self.y, 0, 0, 0, 18, 28)
+
+        else:
+            # If state is not 'idle' (e.g., 'moving' or 'busy')
+            # just draw the main frame all the time.
+            pyxel.blt(self.x, self.y, 0, 24, 0, 41, 30)

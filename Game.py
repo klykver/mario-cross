@@ -3,7 +3,7 @@ import pyxel
 
 pyxel.init(356, 356, title="Mario Bros Factory")
 pyxel.load("assets/sprites.pyxres")
-mario = Mario(210, 222, 3)
+mario = Mario(300, 278, 3)
 
 def update():
     if pyxel.btnp(pyxel.KEY_Q):

@@ -1,3 +1,6 @@
+import pyxel
+
+
 class Mario:
     def __init__(self, x: int, y: int, max_floor: int):
         self._x = x
@@ -48,3 +51,9 @@ class Mario:
         if value not in ('idle', 'moving', 'busy'):
             raise ValueError(f"Invalid state {value}")
         self._state = value
+
+    def update(self):
+        # We will add movement logic here later
+        pass
+    def draw(self):
+        pyxel.blt(self.x, self.y, 0, 2, 0, 16, 28)

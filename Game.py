@@ -1,7 +1,7 @@
 from Mario import Mario
 import pyxel
 
-pyxel.init(356, 356, title="Mario Bros Factory")
+pyxel.init(356, 316, title="Mario Bros Factory")
 pyxel.load("assets/sprites.pyxres")
 mario = Mario(300, 278, 3)
 

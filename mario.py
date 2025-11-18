@@ -66,8 +66,8 @@ class Mario:
                 # ...otherwise (we are in the second half, 15-29)
                 pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30)
 
-
         else:
             # If state is not 'idle' (e.g., 'moving' or 'busy')
             # just draw the main frame all the time.
             pyxel.blt(self.x, self.y, 0, 24, 0, 24, 30)
+

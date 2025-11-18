@@ -5,17 +5,21 @@ import pyxel
 
 class Game:
     def __init__(self):
-        pyxel.init(356, 316, title="Mario Bros Factory")
+        pyxel.init(256, 256, title="Mario Bros Factory")
         pyxel.load("assets/sprites.pyxres")
-        self.mario = Mario(300, 278, 3)
+        self.mario = Mario(200, 213, 3)
+        pyxel.run(self.update, self.draw)  #must be last line in init
 
-        def update():
-            if pyxel.btnp(pyxel.KEY_Q):
-                pyxel.quit()
-            self.mario.update()
+    def draw_background(self):
+        # (x, y, img, u, v, w, h)
+        pyxel.blt(200, 178, 0, 0, 72, 41, 29)
 
-        def draw():
-            pyxel.cls(0)
-            self.mario.draw()
+    def update(self):
+        if pyxel.btnp(pyxel.KEY_Q):
+            pyxel.quit()
+        self.mario.update()
 
-        pyxel.run(update, draw)
+    def draw(self):
+        pyxel.cls(0)
+        self.draw_background()
+        self.mario.draw()

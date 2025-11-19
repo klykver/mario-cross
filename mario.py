@@ -61,7 +61,7 @@ class Mario:
             # We use % 30 to create a repeating cycle of 30 frames
             # If we are in the first half of the cycle (0-14)...
             if (pyxel.frame_count % 30) < 15:
-                pyxel.blt(self.x, self.y, 0, 24, 0, 24, 30)
+                pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30)
             else:
                 # ...otherwise (we are in the second half, 15-29)
                 pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30)

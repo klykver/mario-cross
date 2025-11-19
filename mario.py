@@ -8,6 +8,10 @@ class Mario:
         self.max_floor = max_floor
         self.floor = 0
         self.state = 'idle'  #initialy mario wil be idle
+        self.floor_y_position = [311, 253]
+        self.y = self.floor_y_position[0]
+        self.target_y = self.y
+        self.climb_speed = 4
 
     @property
     def x(self) -> int:
@@ -48,26 +52,63 @@ class Mario:
 
     @state.setter
     def state(self, value: str):
-        if value not in ('idle', 'moving', 'busy'):
+        if value not in ('idle', 'moving', 'busy', 'climbing'):
             raise ValueError(f"Invalid state {value}")
         self.__state = value
 
     def update(self):
-        # We will add movement logic here later
-        pass
+        # 1. ЯКЩО МИ СТОЇМО (IDLE) -> ЧЕКАЄМО КНОПКУ
+        if self.state == 'idle':
+            if pyxel.btnp(pyxel.KEY_UP):
+                # Якщо не на даху -> ліземо вгору
+                if self.floor < self.max_floor:
+                    self.state = 'climbing'
+                    # Наша ціль - Y наступного поверху (+1)
+                    self.target_y = self.floor_y_position[self.floor + 1]
+
+            elif pyxel.btnp(pyxel.KEY_DOWN):
+                # Якщо не на підлозі -> ліземо вниз
+                if self.floor > 0:
+                    self.state = 'climbing'
+                    # Наша ціль - Y попереднього поверху (-1)
+                    self.target_y = self.floor_y_position[self.floor - 1]
+
+        # 2. ЯКЩО МИ ЛІЗЕМО (CLIMBING) -> РУХАЄМОСЯ ДО ЦІЛІ
+        elif self.state == 'climbing':
+
+            # Якщо ми нижче цілі -> рухаємося вгору (зменшуємо Y)
+            if self.y > self.target_y:
+                self.y -= self.climb_speed
+                # Щоб не проскочити
+                if self.y < self.target_y:
+                    self.y = self.target_y
+
+            # Якщо ми вище цілі -> рухаємося вниз (збільшуємо Y)
+            elif self.y < self.target_y:
+                self.y += self.climb_speed
+                if self.y > self.target_y:
+                    self.y = self.target_y
+
+            # 3. ПЕРЕВІРКА ФІНІШУ
+            if self.y == self.target_y:
+                self.state = 'idle'
+                # Оновлюємо номер поверху (шукаємо індекс по Y)
+                if self.y in self.floor_y_position:
+                    self.floor = self.floor_y_position.index(self.y)
+
 
     def draw(self):
+        # 1. (IDLE)
         if self.state == 'idle':
-            # We use % 30 to create a repeating cycle of 30 frames
-            # If we are in the first half of the cycle (0-14)...
             if (pyxel.frame_count % 30) < 15:
                 pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30)
             else:
-                # ...otherwise (we are in the second half, 15-29)
                 pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30)
 
-        else:
-            # If state is not 'idle' (e.g., 'moving' or 'busy')
-            # just draw the main frame all the time.
-            pyxel.blt(self.x, self.y, 0, 24, 0, 24, 30)
+                # 2.(CLIMBING)
+        elif self.state == 'climbing':
+            if (pyxel.frame_count // 5) % 2 == 0:
+                pyxel.blt(self.x, self.y, 0, 55, 0, 15, 28)
+            else:
+                pyxel.blt(self.x, self.y, 0, 80, 0, 15, 28)
 

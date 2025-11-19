@@ -1,8 +1,8 @@
 class Luigi:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, max_floor: int):
         self.x = x
         self.y = y
-        self.max_floor = 5
+        self.max_floor = max_floor
         self.floor = 0
 
         self.state = 'idle'  # 'idle', 'moving', 'busy'

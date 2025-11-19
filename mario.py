@@ -5,8 +5,8 @@ class Mario:
     def __init__(self, x: int, y: int, max_floor: int):
         self.x = x
         self.y = y
-        self.floor = 0
         self.max_floor = max_floor
+        self.floor = 0
         self.state = 'idle'  #initialy mario wil be idle
 
     @property

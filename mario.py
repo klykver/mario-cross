@@ -11,27 +11,27 @@ class Mario:
 
     @property
     def x(self) -> int:
-        return self._x
+        return self.__x
 
     @x.setter
     def x(self, value: int):
         if not isinstance(value, int):
             raise TypeError("Position x must be an integer")
-        self._x = value
+        self.__x = value
 
     @property
     def y(self) -> int:
-        return self._y
+        return self.__y
 
     @y.setter
     def y(self, value: int):
         if not isinstance(value, int):
             raise TypeError("Position y must be an integer")
-        self._y = value
+        self.__y = value
 
     @property
     def floor(self) -> int:
-        return self._floor
+        return self.__floor
 
     @floor.setter
     def floor(self, value: int):
@@ -40,11 +40,11 @@ class Mario:
         elif not (0 <= value <= self._max_floor):
             raise ValueError(f"Floor must be between 0 and {self._max_floor}")
         else:
-            self._floor = value
+            self.__floor = value
 
     @property
     def state(self) -> str:
-        return self._state
+        return self.__state
 
     @state.setter
     def state(self, value: str):

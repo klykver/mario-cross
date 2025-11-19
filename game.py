@@ -15,7 +15,6 @@ class Game:
         pyxel.blt(283, 283, 0, 0, 72, 49, 29)
         pyxel.blt(280, 340, 0, 58, 71, 37, 29)
 
-
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()

@@ -2,8 +2,9 @@ class Luigi:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.floor = 0
         self.max_floor = 5
+        self.floor = 0
+
         self.state = 'idle'  # 'idle', 'moving', 'busy'
 
     @property

@@ -7,7 +7,7 @@ class Game:
     def __init__(self):
         pyxel.init(386, 356, title="Mario Bros Factory")
         pyxel.load("assets/sprites.pyxres")
-        self.mario = Mario(283, 311, 3)
+        self.mario = Mario(283, 311)
         pyxel.run(self.update, self.draw)  #must be last line in init
 
     def draw_background(self):

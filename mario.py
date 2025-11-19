@@ -3,11 +3,11 @@ import pyxel
 
 class Mario:
     def __init__(self, x: int, y: int, max_floor: int):
-        self._x = x
-        self._y = y
-        self._floor = 0
-        self._max_floor = max_floor
-        self._state = 'idle'  #initialy mario wil be idle
+        self.x = x
+        self.y = y
+        self.floor = 0
+        self.max_floor = max_floor
+        self.state = 'idle'  #initialy mario wil be idle
 
     @property
     def x(self) -> int:
@@ -37,8 +37,8 @@ class Mario:
     def floor(self, value: int):
         if not isinstance(value, int):
             raise TypeError("Floor must be an integer")
-        elif not (0 <= value <= self._max_floor):
-            raise ValueError(f"Floor must be between 0 and {self._max_floor}")
+        elif not (0 <= value <= self.max_floor):
+            raise ValueError(f"Floor must be between 0 and {self.max_floor}")
         else:
             self.__floor = value
 
@@ -50,7 +50,7 @@ class Mario:
     def state(self, value: str):
         if value not in ('idle', 'moving', 'busy'):
             raise ValueError(f"Invalid state {value}")
-        self._state = value
+        self.__state = value
 
     def update(self):
         # We will add movement logic here later

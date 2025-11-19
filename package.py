@@ -1,8 +1,8 @@
 class Package:
     def __init__(self, x: int, y: int, conveyor_index: int):
-        self._x = x
-        self._y = y
-        self._conveyor_index = conveyor_index  # Which conveyor it's on
+        self.x = x
+        self.y = y
+        self.conveyor_index = conveyor_index  # Which conveyor it's on
 
     @property
     def x(self) -> int:

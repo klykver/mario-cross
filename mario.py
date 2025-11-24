@@ -119,16 +119,16 @@ class Mario:
        # 1. (IDLE)
        if self.state == 'idle':
            if (pyxel.frame_count % 30) < 15:
-               pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30)
+               pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30, 0)
            else:
-               pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30)
+               pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30, 0)
 
 
                # 2.(CLIMBING)
        elif self.state == 'climbing':
            if (pyxel.frame_count // 5) % 2 == 0:
-               pyxel.blt(self.x, self.y, 0, 55, 0, 15, 28)
+               pyxel.blt(self.x, self.y, 0, 55, 0, 15, 28, 0)
            else:
-               pyxel.blt(self.x, self.y, 0, 80, 0, 15, 28)
+               pyxel.blt(self.x, self.y, 0, 80, 0, 15, 28, 0)
 
 

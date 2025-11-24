@@ -12,14 +12,14 @@ class Game:
 
     def draw_background(self):
         # (x, y, img, u, v, w, h)
-        #pyxel.blt(313, 253, 0, 0, 72, 49, 29)
-        #pyxel.blt(310, 310, 0, 58, 71, 37, 29)
-        #pyxel.blt(180,282,1,0,16,95,26)
-        #pyxel.blt(180, 258, 1, 0, 16, 95, 26)
-        #pyxel.blt(180, 234, 1, 0, 16, 95, 26)
-        #pyxel.blt(180, 210, 1, 0, 16, 95, 26)
-        #pyxel.blt(180, 186, 1, 0, 16, 95, 26)
-        pyxel.bltm(0,0,0,0,128, 704, 815)
+        pyxel.blt(313, 253, 0, 0, 72, 49, 29)
+        pyxel.blt(310, 310, 0, 58, 71, 37, 29)
+        pyxel.blt(180,282,1,0,16,95,26)
+        pyxel.blt(180, 258, 1, 0, 16, 95, 26)
+        pyxel.blt(180, 234, 1, 0, 16, 95, 26)
+        pyxel.blt(180, 210, 1, 0, 16, 95, 26)
+        pyxel.blt(180, 186, 1, 0, 16, 95, 26)
+
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):

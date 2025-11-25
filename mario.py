@@ -8,7 +8,7 @@ class Mario:
         self.max_floor = max_floor
         self.floor = 0
         self.state = 'idle'  #initialy mario wil be idle
-        self.floor_y_position = [276, 227]
+        self.floor_y_position = [190, 141]
         self.y = self.floor_y_position[0]
         self.target_y = self.y
         self.climb_speed = 4

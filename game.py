@@ -1,3 +1,4 @@
+
 from mario import Mario
 from luigi import Luigi
 import pyxel
@@ -9,6 +10,7 @@ class Game:
         pyxel.load("assets/sprites.pyxres")
         self.mario = Mario(313, 281, 3)
         pyxel.run(self.update, self.draw)  #must be last line in init
+
 
     def draw_background(self):
         # (x, y, img, u, v, w, h)

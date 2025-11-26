@@ -2,16 +2,26 @@ import pyxel
 
 
 class Mario:
-    def __init__(self, x: int, y: int, max_floor: int):
+    def __init__(self, x: int, y: int):  # max_floor тут можна і прибрати, але хай буде для сумісності
         self.x = x
         self.y = y
-        self.max_floor = max_floor
+
+        # --- НАЛАШТУВАННЯ ПОВЕРХІВ ---
+        # 1. Задаємо координати
+        self.floor_y_position = [243, 194, 148]
+
+        # 2. АВТОМАТИЧНО вираховуємо максимальний поверх
+        # Якщо у списку 3 числа, то індекси: 0, 1, 2.
+        # len() поверне 3, тому віднімаємо 1. Макс поверх = 2.
+        self.max_floor = len(self.floor_y_position) - 1
+
         self.floor = 0
-        self.state = 'idle'  #initialy mario wil be idle
-        self.floor_y_position = [243, 194]
+        self.state = 'idle'
+
+        # Ставимо Маріо на старт
         self.y = self.floor_y_position[0]
         self.target_y = self.y
-        self.climb_speed = 4
+        self.climb_speed = 3
 
     @property
     def x(self) -> int:
@@ -19,8 +29,6 @@ class Mario:
 
     @x.setter
     def x(self, value: int):
-        if not isinstance(value, int):
-            raise TypeError("Position x must be an integer")
         self.__x = value
 
     @property
@@ -29,8 +37,6 @@ class Mario:
 
     @y.setter
     def y(self, value: int):
-        if not isinstance(value, int):
-            raise TypeError("Position y must be an integer")
         self.__y = value
 
     @property
@@ -39,12 +45,11 @@ class Mario:
 
     @floor.setter
     def floor(self, value: int):
-        if not isinstance(value, int):
-            raise TypeError("Floor must be an integer")
-        elif not (0 <= value <= self.max_floor):
-            raise ValueError(f"Floor must be between 0 and {self.max_floor}")
-        else:
+        # Безпечний сеттер: ігнорує неправильні значення, замість помилки
+        if 0 <= value <= self.max_floor:
             self.__floor = value
+        else:
+            print(f"Warning: Tried to set invalid floor {value}")
 
     @property
     def state(self) -> str:
@@ -53,40 +58,34 @@ class Mario:
     @state.setter
     def state(self, value: str):
         if value not in ('idle', 'moving', 'busy', 'climbing'):
-            raise ValueError(f"Invalid state {value}")
-        self.__state = value
+            print(f"Invalid state: {value}")
+        else:
+            self.__state = value
 
     def update(self):
         # 1. ЯКЩО МИ СТОЇМО (IDLE) -> ЧЕКАЄМО КНОПКУ
         if self.state == 'idle':
             if pyxel.btnp(pyxel.KEY_UP):
-                # Якщо не на даху -> ліземо вгору
+                # БЕЗПЕЧНА ПЕРЕВІРКА:
+                # Чи є наступний поверх у нашому списку координат?
                 if self.floor < self.max_floor:
                     self.state = 'climbing'
-                    # Наша ціль - Y наступного поверху (+1)
                     self.target_y = self.floor_y_position[self.floor + 1]
 
-
             elif pyxel.btnp(pyxel.KEY_DOWN):
-                # Якщо не на підлозі -> ліземо вниз
+                # БЕЗПЕЧНА ПЕРЕВІРКА:
+                # Чи не впадемо ми нижче нуля?
                 if self.floor > 0:
                     self.state = 'climbing'
-                    # Наша ціль - Y попереднього поверху (-1)
                     self.target_y = self.floor_y_position[self.floor - 1]
 
-
-        # 2. ЯКЩО МИ ЛІЗЕМО (CLIMBING) -> РУХАЄМОСЯ ДО ЦІЛІ
+        # 2. ЯКЩО МИ ЛІЗЕМО (CLIMBING)
         elif self.state == 'climbing':
-
-            # Якщо ми нижче цілі -> рухаємося вгору (зменшуємо Y)
             if self.y > self.target_y:
                 self.y -= self.climb_speed
-                # Щоб не проскочити
                 if self.y < self.target_y:
                     self.y = self.target_y
 
-
-            # Якщо ми вище цілі -> рухаємося вниз (збільшуємо Y)
             elif self.y < self.target_y:
                 self.y += self.climb_speed
                 if self.y > self.target_y:
@@ -95,19 +94,21 @@ class Mario:
             # 3. ПЕРЕВІРКА ФІНІШУ
             if self.y == self.target_y:
                 self.state = 'idle'
-                # Оновлюємо номер поверху (шукаємо індекс по Y)
+                # Оновлюємо поверх ТІЛЬКИ якщо такий Y існує
                 if self.y in self.floor_y_position:
                     self.floor = self.floor_y_position.index(self.y)
+                else:
+                    # Якщо раптом координата не знайдена (глюк),
+                    # просто нічого не робимо, щоб не було крашу
+                    print("Error: Mario reached unknown height!")
 
     def draw(self):
-        # 1. (IDLE)
+        # (Твій код малювання без змін)
         if self.state == 'idle':
             if (pyxel.frame_count % 30) < 15:
                 pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30, 0)
             else:
                 pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30, 0)
-
-                # 2.(CLIMBING)
         elif self.state == 'climbing':
             if (pyxel.frame_count // 5) % 2 == 0:
                 pyxel.blt(self.x, self.y, 0, 55, 0, 15, 28, 0)

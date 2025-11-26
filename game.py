@@ -1,5 +1,6 @@
 from mario import Mario
 from luigi import Luigi
+from package import Package
 import pyxel
 
 
@@ -7,7 +8,10 @@ class Game:
     def __init__(self):
         pyxel.init(440, 280, title="Mario Bros Factory") #326
         pyxel.load("assets/sprites.pyxres")
-        self.mario = Mario(313, 235, 3)
+        self.mario = Mario(313, 235)
+        self.packages = []
+        self.spawn_timer = 0
+        self.packages.append(Package(self.mario.floor_y_position, start_floor=0))
         pyxel.run(self.update, self.draw)  #must be last line in init
 
     def draw_background(self):
@@ -45,7 +49,26 @@ class Game:
             pyxel.quit()
         self.mario.update()
 
+        # --- СПАВН ПАКУНКІВ ---
+        self.spawn_timer += 1
+        # Кожні 120 кадрів (4 секунди) з'являється новий
+        if self.spawn_timer > 120:
+            self.spawn_timer = 0
+            # Передаємо список висот з Маріо (вони там вже є)
+            new_pack = Package(self.mario.floor_y_position, start_floor=0)
+            self.packages.append(new_pack)
+
+        # --- ОНОВЛЕННЯ ПАКУНКІВ ---
+        for p in self.packages:
+            # Передаємо маріо і луїджі для перевірки зіткнень
+            p.update(self.mario) # тут ще луіджі має бути
+
+        # Видаляємо неактивні пакунки (щоб пам'ять не забивалась)
+        self.packages = [p for p in self.packages if p.active]
+
     def draw(self):
         pyxel.cls(0)
         self.draw_background()
         self.mario.draw()
+        for p in self.packages:
+            p.draw()

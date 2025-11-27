@@ -3,7 +3,7 @@ class Luigi:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.floor_y_position = [243, 194, 148]
+        self.floor_y_position = [210, 195, 147]
         self.max_floor = len(self.floor_y_position) - 1
         self.floor = 0
         self.state = 'idle'  # 'idle', 'moving', 'busy'
@@ -50,9 +50,10 @@ class Luigi:
 
     @state.setter
     def state(self, value: str):
-        if value not in ('idle', 'moving', 'busy'):
-            raise ValueError(f"Invalid state {value}")
-        self.__state = value
+        if value not in ('idle', 'moving', 'busy', 'climbing'):
+            print(f"Invalid state: {value}")
+        else:
+            self.__state = value
 
     def update(self):
         # 1. ЯКЩО МИ СТОЇМО (IDLE) -> ЧЕКАЄМО КНОПКУ
@@ -98,9 +99,10 @@ class Luigi:
         # (Твій код малювання без змін)
         if self.state == 'idle':
             if (pyxel.frame_count % 30) < 15:
-                pyxel.blt(self.x, self.y, 0, 0, 32, 16, 33, 0)
+                pyxel.blt(self.x, self.y, 0, 24, 33, 14, 33, 0)
+
             else:
-                pyxel.blt(self.x, self.y, 0, 24, 32, 14, 32, 0)
+                pyxel.blt(self.x, self.y, 0, 0, 32, 16, 33, 0)
         elif self.state == 'climbing':
             if (pyxel.frame_count // 5) % 2 == 0:
                 pyxel.blt(self.x, self.y, 0, 72,32, 15, 30, 0)

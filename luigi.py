@@ -1,11 +1,15 @@
+import pyxel
 class Luigi:
-    def __init__(self, x: int, y: int, max_floor: int):
+    def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.max_floor = max_floor
+        self.floor_y_position = [243, 194, 148]
+        self.max_floor = len(self.floor_y_position) - 1
         self.floor = 0
-
         self.state = 'idle'  # 'idle', 'moving', 'busy'
+        self.y = self.floor_y_position[0]
+        self.target_y = self.y
+        self.climb_speed = 3
 
     @property
     def x(self) -> int:
@@ -49,3 +53,56 @@ class Luigi:
         if value not in ('idle', 'moving', 'busy'):
             raise ValueError(f"Invalid state {value}")
         self.__state = value
+
+    def update(self):
+        # 1. ЯКЩО МИ СТОЇМО (IDLE) -> ЧЕКАЄМО КНОПКУ
+        if self.state == 'idle':
+            if pyxel.btnp(pyxel.KEY_W):
+                # БЕЗПЕЧНА ПЕРЕВІРКА:
+                # Чи є наступний поверх у нашому списку координат?
+                if self.floor < self.max_floor:
+                    self.state = 'climbing'
+                    self.target_y = self.floor_y_position[self.floor + 1]
+
+            elif pyxel.btnp(pyxel.KEY_S):
+                # БЕЗПЕЧНА ПЕРЕВІРКА:
+                # Чи не впадемо ми нижче нуля?
+                if self.floor > 0:
+                    self.state = 'climbing'
+                    self.target_y = self.floor_y_position[self.floor - 1]
+
+        # 2. ЯКЩО МИ ЛІЗЕМО (CLIMBING)
+        elif self.state == 'climbing':
+            if self.y > self.target_y:
+                self.y -= self.climb_speed
+                if self.y < self.target_y:
+                    self.y = self.target_y
+
+            elif self.y < self.target_y:
+                self.y += self.climb_speed
+                if self.y > self.target_y:
+                    self.y = self.target_y
+
+            # 3. ПЕРЕВІРКА ФІНІШУ
+            if self.y == self.target_y:
+                self.state = 'idle'
+                # Оновлюємо поверх ТІЛЬКИ якщо такий Y існує
+                if self.y in self.floor_y_position:
+                    self.floor = self.floor_y_position.index(self.y)
+                else:
+                    # Якщо раптом координата не знайдена (глюк),
+                    # просто нічого не робимо, щоб не було крашу
+                    print("Error: Luigi reached unknown height!")
+
+    def draw(self):
+        # (Твій код малювання без змін)
+        if self.state == 'idle':
+            if (pyxel.frame_count % 30) < 15:
+                pyxel.blt(self.x, self.y, 0, 0, 32, 16, 33, 0)
+            else:
+                pyxel.blt(self.x, self.y, 0, 24, 32, 14, 32, 0)
+        elif self.state == 'climbing':
+            if (pyxel.frame_count // 5) % 2 == 0:
+                pyxel.blt(self.x, self.y, 0, 72,32, 15, 30, 0)
+            else:
+                pyxel.blt(self.x, self.y, 0, 48, 32, 15, 33, 0)

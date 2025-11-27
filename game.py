@@ -9,6 +9,7 @@ class Game:
         pyxel.init(504, 280, title="Mario Bros Factory") #326---440
         pyxel.load("assets/sprites.pyxres")
         self.mario = Mario(313, 235)
+        self.luigi = Luigi(40, 235)
         self.packages = []
         self.spawn_timer = 0
         self.packages.append(Package(self.mario.floor_y_position, start_floor=0))
@@ -48,6 +49,7 @@ class Game:
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
         self.mario.update()
+        self.luigi.update()
 
         # --- СПАВН ПАКУНКІВ ---
         self.spawn_timer += 1
@@ -70,5 +72,6 @@ class Game:
         pyxel.cls(0)
         self.draw_background()
         self.mario.draw()
+        self.luigi.draw()
         for p in self.packages:
             p.draw()

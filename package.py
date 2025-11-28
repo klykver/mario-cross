@@ -14,11 +14,11 @@ class Package:
         else:
             self._y = 0
 
-            # --- НАПРЯМОК І СТАРТ X ---
+        # --- НАПРЯМОК І СТАРТ X ---
         # Парні (0, 2) -> ВПРАВО. Непарні (1) -> ВЛІВО.
         if self._conveyor_index % 2 == 0:
             self._direction = 1
-            self._x = 40  # Зліва (біля труби)
+            self._x = 180  # Зліва (біля труби)
         else:
             self._direction = -1
             self._x = 280  # Справа (підлаштуй під ширину свого екрану 386)
@@ -38,7 +38,7 @@ class Package:
             (8, 142, 23, 7),  # 3: Торт з кремом (Поверх 1, після центру) - ЗМІНИ ЦЕ
 
             (8, 142, 23, 7),  # 4: Коробка (Поверх 2, початок) - ЗМІНИ ЦЕ
-            (8, 142, 23, 7)  # 5: Запаковано (Поверх 2, після центру) - ЗМІНИ ЦЕ
+            (8, 142, 23, 7)   # 5: Запаковано (Поверх 2, після центру) - ЗМІНИ ЦЕ
         ]
 
         self.current_frame_index = 0
@@ -64,50 +64,89 @@ class Package:
     def conveyor_index(self) -> int:
         return self._conveyor_index
 
-    # --- UPDATE ---
-    def update(self, mario):
+    # =====================================================
+    #                      UPDATE
+    # =====================================================
+    def update(self, mario, luigi):
         if not self.active:
             return
 
-        # 1. РУХ
         if self.state == 'moving':
-            self._x += self.speed * self._direction
-
-            # --- ЛОГІКА ЗМІНИ КАДРУ (0-5) ---
-            # Базовий індекс для поверху (Поверх 0->0, Поверх 1->2, Поверх 2->4)
-            base_frame = self._conveyor_index * 2
-
-            # Центр екрану (приблизно 386 / 2 = 193)
-            center_x = 193
-
-            passed_center = False
-            if self._direction == 1 and self._x > center_x:
-                passed_center = True
-            elif self._direction == -1 and self._x < center_x:
-                passed_center = True
-
-            # Якщо проїхали центр, додаємо +1 до індексу кадру
-            if passed_center:
-                self.current_frame_index = base_frame + 1
-            else:
-                self.current_frame_index = base_frame
-
-            # --- ПЕРЕВІРКА КРАЇВ (ВЗАЄМОДІЯ) ---
-            # Край МАРІО (Права сторона)
-            if self._direction == 1 and self._x > 250:  # Підлаштуй цю цифру під кінець ленти
-                if mario.floor == self.conveyor_index and mario.state != 'busy':
-                    self.transfer_up(mario)
-                else:
-                    self.state = 'falling'
+            self._update_position()
+            self._update_animation()
+            self._check_edges(mario, luigi)
 
 
-        # 2. ПАДІННЯ
         elif self.state == 'falling':
-            self._y += 4
-            if self._y > 360:  # Низ екрану
-                self.active = False
-                # Тут можна віднімати життя
+            self._update_falling()
 
+    # =====================================================
+    #                SPLIT LOGIC INTO METHODS
+    # =====================================================
+
+    def _update_position(self):
+        # 1. РУХ
+        self._x += self.speed * self._direction
+
+    def _update_animation(self):
+        # --- ЛОГІКА ЗМІНИ КАДРУ (0-5) ---
+        # Базовий індекс для поверху (Поверх 0->0, Поверх 1->2, Поверх 2->4)
+        base_frame = self._conveyor_index * 2
+
+        # Центр екрану (приблизно 386 / 2 = 193)
+        center_x = 193
+
+        passed_center = False
+        if self._direction == 1 and self._x > center_x:
+            passed_center = True
+        elif self._direction == -1 and self._x < center_x:
+            passed_center = True
+
+        # Якщо проїхали центр, додаємо +1 до індексу кадру
+        if passed_center:
+            self.current_frame_index = base_frame + 1
+        else:
+            self.current_frame_index = base_frame
+
+    """def _check_edges(self, mario):
+        # --- ПЕРЕВІРКА КРАЇВ (ВЗАЄМОДІЯ) ---
+
+        # Край МАРІО (права сторона)
+        if self._direction == 1 and self._x > 250:
+            self._handle_edge(mario)
+
+        # Дзеркально (ліва сторона)
+        elif self._direction == -1 and self._x < 40:
+            self._handle_edge(mario)"""
+
+    def _check_edges(self, mario, luigi):
+        if self._direction == 1 and self._x > 250:
+            if mario.floor == self.conveyor_index and mario.state != 'busy':
+                self.transfer_up(mario)
+            else:
+                self.state = 'falling'
+        elif self._direction == -1 and self._x < 180:
+            if luigi.floor == self.conveyor_index and luigi.state != 'busy':
+                self.transfer_up(luigi)
+            else:
+                self.state = 'falling'
+
+    """def _handle_edge(self, mario):
+        if mario.floor == self.conveyor_index and mario.state != 'busy':
+            self.transfer_up(mario)
+        else:
+            self.state = 'falling'"""
+
+    def _update_falling(self):
+        # 2. ПАДІННЯ
+        self._y += 4
+        if self._y > 360:  # Низ екрану
+            self.active = False
+            # Тут можна віднімати життя
+
+    # =====================================================
+    #                TRANSFER TO NEXT FLOOR
+    # =====================================================
     def transfer_up(self, character):
         """Переміщення на поверх вище"""
         # Тут можна додати: character.state = 'busy' (щоб він підняв руки)
@@ -127,19 +166,21 @@ class Package:
 
         # Ставимо на початок нової стрічки
         if self._direction == 1:
-            self._x = 40
+            self._x = 180
         else:
             self._x = 280
 
-    # --- DRAW ---
+    # =====================================================
+    #                       DRAW
+    # =====================================================
     def draw(self):
         if not self.active:
             return
 
-            # Перевіряємо, чи індекс кадру правильний
+        # Перевіряємо, чи індекс кадру правильний
         if 0 <= self.current_frame_index < len(self.SPRITE_FRAMES):
             u, v, w, h = self.SPRITE_FRAMES[self.current_frame_index]
 
             # Малюємо пакунок
             # colkey=0 означає, що чорний колір буде прозорим
-            pyxel.blt(self._x, self._y, 0, u, v, w, h, 0) # 0 в кінці - прозорий колір
+            pyxel.blt(self._x, self._y, 0, u, v, w, h, 0)

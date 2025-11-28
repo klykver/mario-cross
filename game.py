@@ -44,29 +44,38 @@ class Game:
         pyxel.blt(203, 160, 1, 0, 16, 95, 26) #4 conveyor from the bottom
         pyxel.blt(203, 136, 1, 0, 16, 95, 26) #5 conveyor from the bottom
 
-
-    def update(self):
-        if pyxel.btnp(pyxel.KEY_Q):
-            pyxel.quit()
-        self.mario.update()
-        self.luigi.update()
-
+    def package_generator(self):
         # --- СПАВН ПАКУНКІВ ---
         self.spawn_timer += 1
         # Кожні 120 кадрів (4 секунди) з'являється новий
         if self.spawn_timer > 120:
             self.spawn_timer = 0
             # Передаємо список висот з Маріо (вони там вже є)
-            new_pack = Package(self.mario.floor_y_position, start_floor=0)
+            new_pack = Package(self.mario.floor_y_position, 0)
             self.packages.append(new_pack)
+        active_packages = [p for p in self.packages if p.active]
+        while len(active_packages) < 3:
+            new_pack = Package(self.mario.floor_y_position, 0)
+            self.packages.append(new_pack)
+            active_packages.append(new_pack)
 
         # --- ОНОВЛЕННЯ ПАКУНКІВ ---
         for p in self.packages:
             # Передаємо маріо і луїджі для перевірки зіткнень
-            p.update(self.mario) # тут ще луіджі має бути
+            p.update(self.mario,self.luigi)  # тут ще луіджі має бути
+
 
         # Видаляємо неактивні пакунки (щоб пам'ять не забивалась)
         self.packages = [p for p in self.packages if p.active]
+
+    def update(self):
+        if pyxel.btnp(pyxel.KEY_Q):
+            pyxel.quit()
+        self.mario.update()
+        self.luigi.update()
+        self.package_generator()
+
+
 
     def draw(self):
         pyxel.cls(0)
@@ -75,3 +84,4 @@ class Game:
         self.luigi.draw()
         for p in self.packages:
             p.draw()
+

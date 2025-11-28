@@ -3,7 +3,7 @@ class Luigi:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.floor_y_position = [210, 195, 147]
+        self.floor_y_position = [210, 162, 114] #+33
         self.max_floor = len(self.floor_y_position) - 1
         self.floor = 0
         self.state = 'idle'  # 'idle', 'moving', 'busy'
@@ -99,10 +99,10 @@ class Luigi:
         # (Твій код малювання без змін)
         if self.state == 'idle':
             if (pyxel.frame_count % 30) < 15:
-                pyxel.blt(self.x, self.y, 0, 24, 33, 14, 33, 0)
+                pyxel.blt(self.x, self.y, 0, 24, 32, 14, 34, 0)
 
             else:
-                pyxel.blt(self.x, self.y, 0, 0, 32, 16, 33, 0)
+                pyxel.blt(self.x, self.y, 0, 0, 32, 16, 34, 0)
         elif self.state == 'climbing':
             if (pyxel.frame_count // 5) % 2 == 0:
                 pyxel.blt(self.x, self.y, 0, 72,32, 15, 30, 0)

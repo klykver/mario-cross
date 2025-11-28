@@ -53,7 +53,7 @@ class Game:
             # Передаємо список висот з Маріо (вони там вже є)
             new_pack = Package(self.mario.floor_y_position, 0)
             self.packages.append(new_pack)
-        active_packages = [p for p in self.packages if p.active]
+        active_packages = [p for p in self.packages if p.active] #we create this to now how many packages are in the game
         while len(active_packages) < 3:
             new_pack = Package(self.mario.floor_y_position, 0)
             self.packages.append(new_pack)

@@ -69,7 +69,7 @@ class Package:
         else:
             base = 4
 
-        center_x = 243
+        center_x = 236
         passed_center = (self._direction == 1 and self._x > center_x) or \
                         (self._direction == -1 and self._x < center_x)
 
@@ -90,7 +90,7 @@ class Package:
 
                 # переходимо на наступний конвеєр
                 self._y = self.conveyor_y_position[self._conveyor_index]
-                self._direction = 1
+                self._direction = -1
                 self._x = 203
             else:
                 self.state = "falling"
@@ -101,7 +101,7 @@ class Package:
         if self._direction == -1 and self._x >= 283:
             if luigi.floor == self._conveyor_index and luigi.state == "idle":
                 luigi.set_busy()
-                self._conveyor_index += -1
+                self._conveyor_index += 1
 
                 if self._conveyor_index >= len(self.conveyor_y_position):
                     self.active = False
@@ -109,7 +109,7 @@ class Package:
 
                 self._y = self.conveyor_y_position[self._conveyor_index]
                 self._direction = 1
-                self._x = 298
+                self._x = 283
             else:
                 self.state = "falling"
 

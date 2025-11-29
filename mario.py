@@ -14,6 +14,7 @@ class Mario:
         self.state = 'idle'
         self.busy_timer = 0
     #   Mario стає зайнятим (коли бере пакунок)
+
     def set_busy(self):
         self.state = "busy"
         self.busy_timer = 10  # тримає пакунок 10 кадрів

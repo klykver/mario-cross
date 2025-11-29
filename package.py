@@ -2,25 +2,27 @@ import pyxel
 
 
 class Package:
-    def __init__(self, floor_y_positions: list, start_floor: int = 0):
-        # Приймаємо список висот (має бути той самий, що у Маріо)
-        self.floor_y_position = floor_y_positions
+    def __init__(self, conveyor_y_position: list, start_floor: int = 0):
+        # conveyor_y_position: is a list of the y positions of the conveyors
+        # start_floor - initial conveyor. Options (0-4)
+        self.conveyor_y_position = conveyor_y_position
 
         self._conveyor_index = start_floor
 
         # Визначаємо Y (безпечно беремо зі списку)
-        if self._conveyor_index < len(self.floor_y_position):
-            self._y = self.floor_y_position[self._conveyor_index]
+        #y position of the package (current conveyor hight)
+        if self._conveyor_index < len(self.conveyor_y_position):
+            self._y = self.conveyor_y_position[self._conveyor_index]
         else:
             self._y = 0
 
         # --- НАПРЯМОК І СТАРТ X ---
-        # Парні (0, 2) -> ВПРАВО. Непарні (1) -> ВЛІВО.
+        # Парні (0, 2, 4) -> ВПРАВО. Непарні (1, 3) -> ВЛІВО.
         if self._conveyor_index % 2 == 0:
-            self._direction = 1
+            self._direction = 1 #rigth
             self._x = 180  # Зліва (біля труби)
         else:
-            self._direction = -1
+            self._direction = -1 #left
             self._x = 280  # Справа (підлаштуй під ширину свого екрану 386)
 
         self.active = True
@@ -30,18 +32,20 @@ class Package:
         # --- СИСТЕМА КАДРІВ (6 ШТУК) ---
         # Тут треба вписати координати для всіх 6 стадій торта:
         # (u, v, w, h)
+        # after the biggest dimensions that the packages can have we are going to youse the same wight and hight for every package
         self.SPRITE_FRAMES = [
-            (8, 142, 23, 7),  # 0: Тісто (Поверх 0, початок)
-            (8, 142, 23, 7),  # 1: Корж (Поверх 0, після центру) - ЗМІНИ ЦЕ
+            (8, 139, 14, 10),  # 0: Тісто (Поверх 0, початок)
+            (32, 139, 14, 10),  # 1: Корж (Поверх 0, після центру) - ЗМІНИ ЦЕ
 
-            (8, 142, 23, 7),  # 2: Торт (Поверх 1, початок) - ЗМІНИ ЦЕ
-            (8, 142, 23, 7),  # 3: Торт з кремом (Поверх 1, після центру) - ЗМІНИ ЦЕ
+            (56, 139, 14, 10),  # 2: Торт (Поверх 1, початок) - ЗМІНИ ЦЕ
+            (88, 139, 14, 10),  # 3: Торт з кремом (Поверх 1, після центру) - ЗМІНИ ЦЕ
 
-            (8, 142, 23, 7),  # 4: Коробка (Поверх 2, початок) - ЗМІНИ ЦЕ
-            (8, 142, 23, 7)   # 5: Запаковано (Поверх 2, після центру) - ЗМІНИ ЦЕ
+            (120, 139, 14, 10),  # 4: Коробка (Поверх 2, початок) - ЗМІНИ ЦЕ
+            (8, 139, 23, 7)   # 5: Запаковано (Поверх 2, після центру) - ЗМІНИ ЦЕ
         ]
 
         self.current_frame_index = 0
+        self.transfer_timer = 0
 
     # --- PROPERTIES ---
     @property
@@ -76,6 +80,9 @@ class Package:
             self._update_animation()
             self._check_edges(mario, luigi)
 
+        elif self.state == 'transferring':
+            self._update_transferring()
+
 
         elif self.state == 'falling':
             self._update_falling()
@@ -90,9 +97,24 @@ class Package:
 
     def _update_animation(self):
         # --- ЛОГІКА ЗМІНИ КАДРУ (0-5) ---
-        # Базовий індекс для поверху (Поверх 0->0, Поверх 1->2, Поверх 2->4)
-        base_frame = self._conveyor_index * 2
+        # Базовий індекс для поверху (Поверх 0->0, Поверх 1->2, Поверх 2->4) <- before
 
+        """# Frame base según la cinta (0->0, 1->2, 2->4, 3->5, 4->5)
+        if self._conveyor_index >= 2:
+            base_frame = 5  # Cintas superiores usan el último sprite
+        else:
+            base_frame = self._conveyor_index * 2
+
+        # Centro de las cintas transportadoras (aprox x=250)
+        center_x = 250
+
+        # Si pasó el centro, usa el siguiente frame
+        if self._x > center_x and base_frame < 5:
+            self.current_frame_index = base_frame + 1
+        else:
+            self.current_frame_index = base_frame """
+        # dont not how to implement the uper code
+        base_frame = self._conveyor_index * 2
         # Центр екрану (приблизно 386 / 2 = 193)
         center_x = 193
 
@@ -107,18 +129,7 @@ class Package:
             self.current_frame_index = base_frame + 1
         else:
             self.current_frame_index = base_frame
-
-    """def _check_edges(self, mario):
-        # --- ПЕРЕВІРКА КРАЇВ (ВЗАЄМОДІЯ) ---
-
-        # Край МАРІО (права сторона)
-        if self._direction == 1 and self._x > 250:
-            self._handle_edge(mario)
-
-        # Дзеркально (ліва сторона)
-        elif self._direction == -1 and self._x < 40:
-            self._handle_edge(mario)"""
-
+# Maks
     def _check_edges(self, mario, luigi):
         if self._direction == 1 and self._x > 250:
             if mario.floor == self.conveyor_index and mario.state != 'busy':
@@ -131,11 +142,8 @@ class Package:
             else:
                 self.state = 'falling'
 
-    """def _handle_edge(self, mario):
-        if mario.floor == self.conveyor_index and mario.state != 'busy':
-            self.transfer_up(mario)
-        else:
-            self.state = 'falling'"""
+
+
 
     def _update_falling(self):
         # 2. ПАДІННЯ
@@ -154,12 +162,12 @@ class Package:
         self._conveyor_index += 1
 
         # Перевірка на вантажівку (якщо поверхи закінчились)
-        if self._conveyor_index >= len(self.floor_y_position):
+        if self._conveyor_index >= len(self.conveyor_y_position):
             self.active = False  # Успіх!
             return
 
         # Нова висота
-        self._y = self.floor_y_position[self._conveyor_index]
+        self._y = self.conveyor_y_position[self._conveyor_index]
 
         # Змінюємо напрямок
         self._direction *= -1

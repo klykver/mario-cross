@@ -9,9 +9,13 @@ class Game:
         pyxel.init(504, 280, title="Mario Bros Factory") #326---440
         pyxel.load("assets/sprites.pyxres")
         self.mario = Mario(313, 235)
-        self.luigi = Luigi(139, 210)
+        self.luigi = Luigi(173, 210)
+        #positions of the 5 conveyors.
+        self.conveyor_y_positions = [232, 208, 184, 160, 136]
         self.packages = []
         self.spawn_timer = 0
+        self.score = 0
+        self.failed_packages = 0
         self.packages.append(Package(self.mario.floor_y_position, start_floor=0))
         pyxel.run(self.update, self.draw)  #must be last line in init
 
@@ -53,17 +57,24 @@ class Game:
             # Передаємо список висот з Маріо (вони там вже є)
             new_pack = Package(self.mario.floor_y_position, 0)
             self.packages.append(new_pack)
-        active_packages = [p for p in self.packages if p.active] #we create this to now how many packages are in the game
+            # we create this to now how many packages are in the game
+        active_packages = [p for p in self.packages if p.active]
+        #we allow 3 packages
         while len(active_packages) < 3:
             new_pack = Package(self.mario.floor_y_position, 0)
             self.packages.append(new_pack)
             active_packages.append(new_pack)
-
+    def update_packages(self):
         # --- ОНОВЛЕННЯ ПАКУНКІВ ---
         for p in self.packages:
             # Передаємо маріо і луїджі для перевірки зіткнень
             p.update(self.mario,self.luigi)  # тут ще луіджі має бути
-
+            # THIS IF FOR LATER KNOW WHEN THE GAME ENDS
+            if not p.active:
+                if p.state == "falling":
+                    self.failed_packages += 1
+                else:
+                    self.score +=1
 
         # Видаляємо неактивні пакунки (щоб пам'ять не забивалась)
         self.packages = [p for p in self.packages if p.active]
@@ -74,6 +85,7 @@ class Game:
         self.mario.update()
         self.luigi.update()
         self.package_generator()
+        self.update_packages()
 
 
 
@@ -84,4 +96,18 @@ class Game:
         self.luigi.draw()
         for p in self.packages:
             p.draw()
+        # HUD
+        pyxel.text(5, 5, f"SCORE: {self.score}", 7)
+        pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)
+        pyxel.text(5, 25, f"ACTIVE: {len(self.packages)}", 11)
+        # Ayuda visual - muestra los pisos y qué cintas atiende cada uno
+        pyxel.text(320, 5, f"MARIO F{self.mario.floor}", 8)
+        pyxel.text(320, 15, "Cintas: 0,2,4", 8)
 
+        pyxel.text(140, 5, f"LUIGI F{self.luigi.floor}", 11)
+        pyxel.text(140, 15, "Cintas: 1,3", 11)
+
+        # Leyenda de cintas
+        pyxel.text(5, 40, "CINTAS:", 7)
+        pyxel.text(5, 50, "0->  2<-  4->", 10)
+        pyxel.text(5, 60, "  1<-  3<-", 10)

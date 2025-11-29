@@ -34,14 +34,11 @@ class Package:
         # (u, v, w, h)
         # after the biggest dimensions that the packages can have we are going to youse the same wight and hight for every package
         self.SPRITE_FRAMES = [
-            (8, 139, 14, 10),  # 0: Тісто (Поверх 0, початок)
-            (32, 139, 14, 10),  # 1: Корж (Поверх 0, після центру) - ЗМІНИ ЦЕ
-
-            (56, 139, 14, 10),  # 2: Торт (Поверх 1, початок) - ЗМІНИ ЦЕ
-            (88, 139, 14, 10),  # 3: Торт з кремом (Поверх 1, після центру) - ЗМІНИ ЦЕ
-
-            (120, 139, 14, 10),  # 4: Коробка (Поверх 2, початок) - ЗМІНИ ЦЕ
-            (8, 139, 23, 7)   # 5: Запаковано (Поверх 2, після центру) - ЗМІНИ ЦЕ
+            (8, 142, 15, 7),
+            (32, 140, 15, 9),
+            (56, 140, 15, 9),
+            (80, 140, 15, 9),
+            (104, 138, 15, 11),
         ]
 
         self.current_frame_index = 0
@@ -68,9 +65,6 @@ class Package:
     def conveyor_index(self) -> int:
         return self._conveyor_index
 
-    # =====================================================
-    #                      UPDATE
-    # =====================================================
     def update(self, mario, luigi):
         if not self.active:
             return
@@ -87,9 +81,7 @@ class Package:
         elif self.state == 'falling':
             self._update_falling()
 
-    # =====================================================
-    #                SPLIT LOGIC INTO METHODS
-    # =====================================================
+
 
     def _update_position(self):
         # 1. РУХ

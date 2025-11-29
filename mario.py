@@ -103,7 +103,6 @@ class Mario:
                     print("Error: Mario reached unknown height!")
 
     def draw(self):
-        # (Твій код малювання без змін)
         if self.state == 'idle':
             if (pyxel.frame_count % 30) < 15:
                 pyxel.blt(self.x, self.y, 0, 24, 0, 17, 30, 0)

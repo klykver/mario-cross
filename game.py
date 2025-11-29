@@ -23,7 +23,7 @@ class Game:
         # (x, y, img, u, v, w, h)
         pyxel.blt(30,157,2,178,122,70,38,0) #truck
         pyxel.blt(406, 180, 0, 0, 184, 24, 72,0)# pipe
-        pyxel.blt(341, 260, 0, 141, 112, 92, 10,0) # conveyor 0
+        #pyxel.blt(341, 260, 0, 141, 112, 92, 10,0) # conveyor 0
 
         pyxel.blt(313, 177, 0, 0, 72, 49, 29,0) #2º floor mario
         pyxel.blt(313, 224, 0, 0, 72, 49, 29,0) # 1º floor mario
@@ -48,6 +48,15 @@ class Game:
         pyxel.blt(203, 160, 1, 0, 16, 95, 26) #4 conveyor from the bottom
         pyxel.blt(203, 136, 1, 0, 16, 95, 26) #5 conveyor from the bottom
 
+        #верхушка конвєєра
+        pyxel.blt(230, 127, 2, 176, 0, 47, 11)
+        #центральна частина конвєєра
+        pyxel.blt(243, 137, 2, 189, 10, 22, 108)
+        pyxel.blt(243, 242, 2, 189, 106, 22, 9)
+        pyxel.blt(243, 251, 2, 189, 106, 22, 9)
+        pyxel.blt(243, 260, 2, 189, 106, 22, 9)
+        pyxel.blt(243, 269, 2, 189, 106, 22, 9)
+        pyxel.blt(243, 278, 2, 189, 106, 22, 9)
     def package_generator(self):
         # --- СПАВН ПАКУНКІВ ---
         self.spawn_timer += 1
@@ -91,11 +100,12 @@ class Game:
 
     def draw(self):
         pyxel.cls(0)
-        self.draw_background()
         self.mario.draw()
         self.luigi.draw()
         for p in self.packages:
             p.draw()
+
+        self.draw_background()
         # HUD
         pyxel.text(5, 5, f"SCORE: {self.score}", 7)
         pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)

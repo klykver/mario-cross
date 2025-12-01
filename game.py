@@ -13,7 +13,7 @@ class Game:
         self.luigi = Luigi(173, 210)
 
         # Координати Y конвеєрів
-        self.conveyor_y_positions = [232, 208, 184, 160, 136]
+        self.conveyor_y_positions = [234, 210, 186, 162, 138]
 
         self.packages = []
         self.spawn_timer = 0
@@ -21,14 +21,15 @@ class Game:
         self.failed_packages = 0
 
         # Створюємо ОДИН пакунок для старту
-        self.packages.append(Package(self.mario.floor_y_position, start_floor=0))
+        #self.packages.append(Package(self.mario.floor_y_position, start_floor=0))<- dont understant
+        self.packages.append(Package(self.conveyor_y_positions)) #<- more sense?
 
         pyxel.run(self.update, self.draw)
 
     # --- МЕТОД 1: МАЛЮЄМО ТЕ, ЩО ПОЗАДУ ---
     def draw_background_static(self):
         # Вантажівка
-        pyxel.blt(30, 157, 2, 178, 122, 70, 38, 0)
+        pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
         # Труба
         pyxel.blt(406, 180, 0, 0, 184, 24, 72, 0)
 
@@ -60,6 +61,38 @@ class Game:
         # Верхівка конвеєра
         pyxel.blt(230, 127, 2, 176, 0, 47, 11)
 
+        # DOORS
+        #left
+        pyxel.blt(493, 145, 1, 0, 192, 11, 32)
+        #right
+        pyxel.blt(0, 233, 1, 16, 192, 12, 32)
+
+        # WINDOWS
+        pyxel.blt(250, 70, 1, 144, 112, 25, 20)
+
+        #exit TRUCK
+        pyxel.blt(0, 132, 1, 0, 120, 32, 63, 0)
+        #FAILS
+        pyxel.blt(300, 60, 1, 2, 64, 15, 16)
+        pyxel.blt(320, 60, 1, 2, 64, 15, 16)
+        pyxel.blt(340, 60, 1, 2, 64, 15, 16)
+        pyxel.blt(200, 60, 1, 26, 64, 15, 16)
+        pyxel.blt(180, 60, 1, 26, 64, 15, 16)
+        pyxel.blt(160, 60, 1, 26, 64, 15, 16)
+
+
+        #EXIT
+        pyxel.blt(40, 70, 1, 176, 112, 24, 8)
+
+
+        #SCORE
+        pyxel.blt(440, 70, 1, 64, 85, 8, 15)
+        pyxel.blt(460, 70, 1, 64, 85, 8, 15)
+        pyxel.blt(480, 70, 1, 64, 85, 8, 15)
+
+
+
+
     # --- МЕТОД 2: МАЛЮЄМО ТЕ, ЩО СПЕРЕДУ (Щоб закрити пакунки) ---
     def draw_foreground_pillars(self):
         # Центральна колона (малюється ПОВЕРХ пакунків)
@@ -80,7 +113,7 @@ class Game:
         # 180 кадрів = 6 секунд (при 30 FPS).
         if self.spawn_timer > 180:
             self.spawn_timer = 0
-            new_pack = Package(self.mario.floor_y_position, start_floor=0)
+            new_pack = Package(self.conveyor_y_positions,0)
             self.packages.append(new_pack)
 
     def update_packages(self):
@@ -90,7 +123,8 @@ class Game:
             if not p.active:
                 if p.state == "falling":
                     self.failed_packages += 1
-                else:
+            else:
+                if p.state == "pass":#it is wrong as it will be adding until it fels.
                     self.score += 1
 
         self.packages = [p for p in self.packages if p.active]
@@ -123,3 +157,4 @@ class Game:
         # HUD
         pyxel.text(5, 5, f"SCORE: {self.score}", 7)
         pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)
+

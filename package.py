@@ -1,13 +1,14 @@
 import pyxel
 
+
 class Package:
-    def __init__(self, conveyor_y_position: list, start_floor: int = 0): # do we need the start floor?
+    def __init__(self, conveyor_y_position: list, start_floor: int = 0):  # do we need the start floor?
         self.conveyor_y_position = conveyor_y_position
 
         #SPAWN FROM PIPE
         self.state = "drop"
-        self._x = 406       # труба справа
-        self._y = 251       # drop road
+        self._x = 406  # труба справа
+        self._y = 251  # drop road
         self._direction = -1
         self._conveyor_index = -1  # ще не на конвеєрі
 
@@ -16,12 +17,12 @@ class Package:
 
         # Анімаційні кадри
         self.SPRITE_FRAMES = [
-            (8, 140, 15, 9),   # 0
+            (8, 140, 15, 9),  # 0
             (32, 140, 15, 9),  # 1
             (56, 140, 15, 9),  # 2
             (80, 140, 15, 9),  # 3
-            (104, 138, 15, 11),# 4
-            (0, 117, 15, 9),   # 5
+            (104, 138, 15, 11),  # 4
+            (0, 117, 15, 9),  # 5
         ]
 
         self.current_frame_index = 0
@@ -41,9 +42,9 @@ class Package:
                 if mario.floor == 0 and mario.state == "idle":
                     mario.set_busy()
                     self._conveyor_index = 0
-                    self._x = 283          # старт конвеєру
+                    self._x = 283  # старт конвеєру
                     self._y = 234
-                    self._direction = -1    # тепер їде до Luigi
+                    self._direction = -1  # тепер їде до Luigi
                     self.state = "moving"
                 else:
                     self.state = "falling"
@@ -75,16 +76,14 @@ class Package:
 
         self.current_frame_index = base + (1 if passed_center else 0)
 
-
     def _check_edges(self, mario, luigi):
         #MARIO SIDE (праворуч)
 
         # Para luigi:  si el conveyer es par->dividimos entre 2 y si coincide con el numero de piso entonces se pasa el paquete
         #Para mario: como el piso cero en este momento no se tiene en cuanta ya que no es par, usamos la siguiete formula de relación entre pisos e indice de conveyors. mario.floor == (self._conveyor_index  + 1) / 2
 
-
         if self._conveyor_index % 2 != 0 and self._x >= 283:
-            if mario.floor == (self._conveyor_index  + 1) / 2 and mario.state == "idle":
+            if mario.floor == (self._conveyor_index + 1) / 2 and mario.state == "idle":
                 mario.set_busy()
                 self._conveyor_index += 1
 

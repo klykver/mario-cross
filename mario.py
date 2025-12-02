@@ -53,8 +53,10 @@ class Mario:
 
     def draw(self):
         if self.state == 'busy':
-            pyxel.blt(self.x, self.y, 0, 1, 0, 17, 30, 0)
-            return
+            if (pyxel.frame_count % 60) < 15:
+                pyxel.blt(self.x, self.y, 0, 103, 8, 25, 22, 0)
+            else:
+                pyxel.blt(self.x, self.y, 0, 143, 0, 24, 30, 0)
 
         if self.state == 'idle':
             if (pyxel.frame_count % 30) < 15:

@@ -52,11 +52,11 @@ class Game:
         pyxel.blt(130, 147, 0, 129, 168, 15, 49)
 
         # Конвеєри (малюємо їх позаду пакунків)
-        pyxel.blt(203, 232, 1, 0, 16, 95, 26)
-        pyxel.blt(203, 208, 1, 0, 16, 95, 26)
-        pyxel.blt(203, 184, 1, 0, 16, 95, 26)
-        pyxel.blt(203, 160, 1, 0, 16, 95, 26)
-        pyxel.blt(203, 136, 1, 0, 16, 95, 26)
+        pyxel.blt(200, 232, 1, 0, 16, 95, 26)
+        pyxel.blt(208, 208, 1, 0, 16, 95, 26)
+        pyxel.blt(200, 184, 1, 0, 16, 95, 26)
+        pyxel.blt(208, 160, 1, 0, 16, 95, 26)
+        pyxel.blt(200, 136, 1, 0, 16, 95, 26)
 
         # Верхівка конвеєра
         pyxel.blt(230, 127, 2, 176, 0, 47, 11)
@@ -68,7 +68,7 @@ class Game:
         pyxel.blt(0, 233, 1, 16, 192, 12, 32)
 
         # WINDOWS
-        pyxel.blt(250, 70, 1, 144, 112, 25, 20)
+        pyxel.blt(459, 130, 1, 144, 112, 25, 20)
 
         #exit TRUCK
         pyxel.blt(0, 132, 1, 0, 120, 32, 63, 0)
@@ -82,7 +82,7 @@ class Game:
 
 
         #EXIT
-        pyxel.blt(40, 70, 1, 176, 112, 24, 8)
+        pyxel.blt(7, 119, 1, 176, 112, 24, 8)
 
 
         #SCORE
@@ -124,7 +124,7 @@ class Game:
                 if p.state == "falling":
                     self.failed_packages += 1
             else:
-                if p.state == "pass":#it is wrong as it will be adding until it fels.
+                if p.state == "pass": #it is wrong as it will be adding until it fels.
                     self.score += 1
 
         self.packages = [p for p in self.packages if p.active]

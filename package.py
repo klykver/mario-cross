@@ -7,10 +7,10 @@ class Package:
 
         #SPAWN FROM PIPE
         self.state = "drop"
-        self._x = 406  # труба справа
-        self._y = 251  # drop road
-        self._direction = -1
-        self._conveyor_index = -1  # ще не на конвеєрі
+        self.x = 406  # труба справа
+        self.y = 251  # drop road
+        self.direction = -1
+        self.conveyor_index = -1  # ще не на конвеєрі
 
         self.speed = 1
         self.active = True
@@ -33,18 +33,18 @@ class Package:
 
         # з труби виходить
         if self.state == "drop":
-            self._x += self.speed * self._direction
+            self.x += self.speed * self.direction
 
             mario_catch_x = 313
 
-            if self._x <= mario_catch_x:
+            if self.x <= mario_catch_x:
                 # Mario ловить тільки якщо стоїть на нижньому поверсі
                 if mario.floor == 0 and mario.state == "idle":
                     mario.set_busy()
-                    self._conveyor_index = 0
-                    self._x = 283  # старт конвеєру
-                    self._y = 234
-                    self._direction = -1  # тепер їде до Luigi
+                    self.conveyor_index = 0
+                    self.x = 283  # старт конвеєру
+                    self.y = 234
+                    self.direction = -1  # тепер їде до Luigi
                     self.state = "moving"
                 else:
                     self.state = "falling"
@@ -52,27 +52,27 @@ class Package:
 
         #FALL
         if self.state == "falling":
-            self._y += 3
-            if self._y > 350:
+            self.y += 3
+            if self.y > 350:
                 self.active = False
             return
 
         if self.state == "moving":
-            self._x += self.speed * self._direction
+            self.x += self.speed * self.direction
             self._update_animation()
             self._check_edges(mario, luigi)
 
     def _update_animation(self):
-        if self._conveyor_index <= 0:
+        if self.conveyor_index <= 0:
             base = 0
-        elif self._conveyor_index == 1:
+        elif self.conveyor_index == 1:
             base = 2
         else:
             base = 4
 
         center_x = 236
-        passed_center = (self._direction == 1 and self._x > center_x) or \
-                        (self._direction == -1 and self._x < center_x)
+        passed_center = (self.direction == 1 and self.x > center_x) or \
+                        (self.direction == -1 and self.x < center_x)
 
         self.current_frame_index = base + (1 if passed_center else 0)
 
@@ -80,40 +80,40 @@ class Package:
         #MARIO SIDE (праворуч)
 
         # Para luigi:  si el conveyer es par->dividimos entre 2 y si coincide con el numero de piso entonces se pasa el paquete
-        #Para mario: como el piso cero en este momento no se tiene en cuanta ya que no es par, usamos la siguiete formula de relación entre pisos e indice de conveyors. mario.floor == (self._conveyor_index  + 1) / 2
+        #Para mario: como el piso cero en este momento no se tiene en cuanta ya que no es par, usamos la siguiete formula de relación entre pisos e indice de conveyors. mario.floor == (self.conveyor_index  + 1) / 2
 
-        if self._conveyor_index % 2 != 0 and self._x >= 283:
-            if mario.floor == (self._conveyor_index + 1) / 2 and mario.state == "idle":
+        if self.conveyor_index % 2 != 0 and self.x >= 283:
+            if mario.floor == (self.conveyor_index + 1) / 2 and mario.state == "idle":
                 mario.set_busy()
-                self._conveyor_index += 1
+                self.conveyor_index += 1
 
                 # truck?
-                if self._conveyor_index >= len(self.conveyor_y_position):
+                if self.conveyor_index >= len(self.conveyor_y_position):
                     self.active = False
                     return
 
                 # переходимо на наступний конвеєр
-                self._y = self.conveyor_y_position[self._conveyor_index]
-                self._direction = -1
-                self._x = 283
+                self.y = self.conveyor_y_position[self.conveyor_index]
+                self.direction = -1
+                self.x = 283
             else:
                 self.state = "falling"
             return
 
         # LUIGI SIDE (зліва)
 
-        if self._conveyor_index % 2 == 0 and self._x <= 203:
-            if luigi.floor == self._conveyor_index / 2 and luigi.state == "idle":
+        if self.conveyor_index % 2 == 0 and self.x <= 203:
+            if luigi.floor == self.conveyor_index / 2 and luigi.state == "idle":
                 luigi.set_busy()
-                self._conveyor_index += 1
+                self.conveyor_index += 1
 
-                if self._conveyor_index >= len(self.conveyor_y_position):
+                if self.conveyor_index >= len(self.conveyor_y_position):
                     self.active = False
                     return
 
-                self._y = self.conveyor_y_position[self._conveyor_index]
-                self._direction = 1
-                self._x = 203
+                self.y = self.conveyor_y_position[self.conveyor_index]
+                self.direction = 1
+                self.x = 203
             else:
                 self.state = "falling"
 
@@ -122,4 +122,4 @@ class Package:
             return
 
         u, v, w, h = self.SPRITE_FRAMES[self.current_frame_index]
-        pyxel.blt(self._x, self._y, 0, u, v, w, h, 0)
+        pyxel.blt(self.x, self.y, 0, u, v, w, h, 0)

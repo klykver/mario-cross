@@ -2,6 +2,7 @@ from mario import Mario
 from luigi import Luigi
 from package import Package
 from boss import Boss
+from truck import Truck
 import pyxel
 
 
@@ -13,6 +14,7 @@ class Game:
         self.mario = Mario(313, 235)
         self.luigi = Luigi(173, 210)
         self.boss = Boss()
+        self.truck = Truck(50, 157)
 
         # game states: "menu", "playing", "paused", "gameover"
         self.state = "menu"
@@ -40,7 +42,7 @@ class Game:
     # ---------------- background ----------------
     def draw_background_static(self):
         # Вантажівка
-        pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
+        #pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
         # Труба
         pyxel.blt(406, 180, 0, 0, 184, 24, 72, 0)
 
@@ -101,11 +103,19 @@ class Game:
         if self.state != "playing":
             return
 
-        self.spawn_timer += 1
-        if self.spawn_timer > 180:
-            self.spawn_timer = 0
-            new_pack = Package(self.conveyor_y_positions)
-            self.packages.append(new_pack)
+        # count active packages on the conveyors
+        active_count = 0
+        for p in self.packages:
+            if p.active and (p.state == "drop" or p.state == "moving"):
+                active_count += 1
+
+        # only spawn a new package if there are less than 4 active packages
+        if active_count < 4:
+            self.spawn_timer += 1
+            if self.spawn_timer > 280:
+                self.spawn_timer = 0
+                new_pack = Package(self.conveyor_y_positions)
+                self.packages.append(new_pack)
 
     # ---------------- package updates ----------------
     def update_packages(self):
@@ -114,7 +124,11 @@ class Game:
 
         # update every package
         for p in self.packages:
+            prev_index = p.conveyor_index
             p.update(self.mario, self.luigi)
+            # add score when package moves to next conveyor by comparing the previous conveyor index with the current one.
+            if p.active and p.conveyor_index > prev_index:
+                self.score += 1
 
         # check results AFTER updates
         new_list = []
@@ -123,12 +137,13 @@ class Game:
             if not p.active and p.state == "falling":
                 # decide guilty based on x position (where it fell)
                 if p.x > 240:
-                    self.luigi_lives -= 1
+                    self.mario_lives -= 1
                     self.boss.appear("right")
                     self.mario.set_scared()
                     self.guilty = "mario"
+
                 else:
-                    self.mario_lives -= 1
+                    self.luigi_lives -= 1
                     self.boss.appear("left")
                     self.luigi.set_scared()
                     self.guilty = "luigi"
@@ -143,8 +158,15 @@ class Game:
 
             # successful delivery: if package became inactive via being delivered
             if not p.active and p.state != "falling":
-                # treat as success
-                self.score += 1
+                # Add package on truck
+                if not self.truck.is_full:
+                    self.truck.add_package()
+                    #check if truck is full
+                    if self.truck.is_full:
+                        self.state = "paused"  # pause the game
+                        self.pause_timer = self.truck.DELIVERY_DURATION  # 4 seconds at 30 FPS
+                        self.score += 10        # add 10 points
+
                 continue
 
             # keep active packages
@@ -170,6 +192,7 @@ class Game:
         # state: paused (boss active)
         if self.state == "paused":
             self.boss.update()
+            self.truck.update()
             # decrement pause timer
             self.pause_timer -= 1
             # during pause: do not update packages or players
@@ -198,6 +221,8 @@ class Game:
             self.luigi.update()
             self.package_generator()
             self.update_packages()
+            self.truck.update()
+
 
             # check lives -> game over
             if self.mario_lives <= 0 or self.luigi_lives <= 0:
@@ -233,6 +258,10 @@ class Game:
         for p in self.packages:
             p.draw()
 
+        # truck and packages on truck
+        self.truck.draw()
+        self.truck.draw_packages()
+
         # foreground pillars + small conveyor
         self.draw_foreground_pillars()
 
@@ -245,9 +274,9 @@ class Game:
 
         # lives
         for i in range(self.mario_lives):
-            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
-        for i in range(self.luigi_lives):
             pyxel.blt(300 + i * 20, 20, 1, 2, 64, 15, 16, 0)
+        for i in range(self.luigi_lives):
+            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
 
         # overlays
         if self.state == "menu":
@@ -255,9 +284,13 @@ class Game:
             pyxel.text(220, 70, "MARIO BROS FACTORY", 7)
             pyxel.text(220, 80, "PRESS SPACE TO START", 8)
         elif self.state == "paused":
-            # boss / guilty overlay: show message
-            pyxel.text(200, 100, "BOSS! He punished the worker!", 8)
-            pyxel.text(200, 110, "Game will resume soon...", 7)
+            # full-truck / boss / guilty overlay: show message
+            if self.truck.is_full == True:
+                pyxel.text(200, 100, "TRUCK FULL! Delivering packages...", 8)
+            else:
+                pyxel.text(200, 100, "BOSS! He punished the worker!", 8)
+                pyxel.text(200, 110, "Game will resume soon...", 7)
+
         elif self.state == "gameover":
             pyxel.text(200, 100, "GAME OVER", 8)
             pyxel.text(200, 110, "PRESS SPACE TO RESTART", 7)

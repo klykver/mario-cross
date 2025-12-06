@@ -62,11 +62,14 @@ class Luigi:
 
     def draw(self):
         if self.state == "scared":
-            pyxel.blt(self.x, self.y + 7, 0, 119, 35, 17, 29, 0)
+            pyxel.blt(self.x, self.y + 5, 0, 119, 35, 17, 29, 0)
             return
 
         if self.state == 'busy':
-            pyxel.blt(self.x, self.y, 0, 0, 32, 16, 34, 0)
+            if (pyxel.frame_count % 60) < 15:
+                pyxel.blt(self.x, self.y+ 11, 0, 144, 43, 24, 23, 0)
+            else:
+                pyxel.blt(self.x, self.y , 0, 89, 32, 23, 31, 0)
             return
 
         if self.state == 'idle':

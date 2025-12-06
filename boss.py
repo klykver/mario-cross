@@ -30,7 +30,7 @@ class Boss:
         if not self.active:
             return
         # draw boss sprite (use appropriate sprite coords from your sheet)
+        if self.side == "right":
+            pyxel.blt(self.left_x, self.left_y, 2, 80, 168, 23, 33, 0)
         if self.side == "left":
-            pyxel.blt(self.left_x, self.left_y, 2, 81, 128, 20, 33, 0)
-        else:
             pyxel.blt(self.right_x, self.right_y, 2, 81, 128, 20, 33, 0)

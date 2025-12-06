@@ -12,7 +12,7 @@ class Package:
         self.direction = -1
         self.conveyor_index = -1
 
-        self.speed = 1.2
+        self.speed = 10
         self.active = True
         self.passed_center = False
 
@@ -26,6 +26,8 @@ class Package:
             (0, 116, 15, 9),  # 5
         ]
         self.current_frame_index = 0
+        self.move_timer = 0  # contador de frames
+        self.move_interval = 50  # cada cuántos frames se mueve un pixel (ajusta para “saltado”)
 
     def update(self, mario, luigi):
         if not self.active:
@@ -33,8 +35,12 @@ class Package:
 
         # DROP: from pipe to mario catch point
         if self.state == "drop":
-            self.x += self.speed * self.direction
+            self.move_timer += 1
+            if self.move_timer >= self.move_interval:
+                self.move_timer = 0
+                self.x += self.speed * self.direction
             mario_catch_x = 327
+
 
             if self.x <= mario_catch_x:
                 if mario.floor == 0 and mario.state == "idle":
@@ -50,16 +56,22 @@ class Package:
 
         # FALL
         if self.state == "falling":
-            self.y += 3
+            self.move_timer += 7
+            if self.move_timer >= self.move_interval:
+                self.move_timer = 0
+                self.y += 3
             if self.y > 350:
                 self.active = False
             return
 
         # MOVING on conveyor
         if self.state == "moving":
-            self.x += self.speed * self.direction
-            self._update_animation()
-            self._check_edges(mario, luigi)
+            self.move_timer += 1
+            if self.move_timer >= self.move_interval:
+                self.move_timer = 0
+                self.x += self.speed * self.direction
+                self._update_animation()
+                self._check_edges(mario, luigi)
 
     def _update_animation(self):
         # simple: toggle frame when crossing center; safe wrap
@@ -79,13 +91,6 @@ class Package:
             if mario.floor == (self.conveyor_index + 1) / 2 and mario.state == "idle":
                 mario.set_busy()
                 self.conveyor_index += 1
-
-                # truck?
-                if self.conveyor_index >= len(self.conveyor_y_position):
-                    # delivered to truck -> mark inactive as delivered
-                    self.state = "delivered"
-                    self.active = False
-                    return
 
                 self.y = self.conveyor_y_position[self.conveyor_index]
                 self.direction = -1

@@ -1,6 +1,7 @@
 from mario import Mario
 from luigi import Luigi
 from package import Package
+from boss import Boss
 import pyxel
 
 
@@ -11,6 +12,13 @@ class Game:
 
         self.mario = Mario(313, 235)
         self.luigi = Luigi(173, 210)
+        self.boss = Boss()
+
+        # game states: "menu", "playing", "paused", "gameover"
+        self.state = "menu"
+
+        self.mario_lives = 3
+        self.luigi_lives = 3
 
         # Координати Y конвеєрів
         self.conveyor_y_positions = [234, 210, 186, 162, 138]
@@ -20,19 +28,21 @@ class Game:
         self.score = 0
         self.failed_packages = 0
 
-        # Створюємо ОДИН пакунок для старту
-        #self.packages.append(Package(self.mario.floor_y_position, start_floor=0))<- dont understant
-        self.packages.append(Package(self.conveyor_y_positions)) #<- more sense?
+        # pause timer when boss appears / fall happens (frames)
+        self.pause_timer = 0
+        self.guilty = None  # "mario" or "luigi"
+
+        # стартовий пакунок
+        self.packages.append(Package(self.conveyor_y_positions))
 
         pyxel.run(self.update, self.draw)
 
-    # --- МЕТОД 1: МАЛЮЄМО ТЕ, ЩО ПОЗАДУ ---
+    # ---------------- background ----------------
     def draw_background_static(self):
         # Вантажівка
         pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
         # Труба
         pyxel.blt(406, 180, 0, 0, 184, 24, 72, 0)
-
 
         # Платформи Маріо
         pyxel.blt(313, 177, 0, 0, 72, 49, 29, 0)
@@ -62,40 +72,19 @@ class Game:
         pyxel.blt(230, 127, 2, 176, 0, 47, 11)
 
         # DOORS
-        #left
+        # left
         pyxel.blt(493, 145, 1, 0, 192, 11, 32)
-        #right
+        # right
         pyxel.blt(0, 233, 1, 16, 192, 12, 32)
 
         # WINDOWS
         pyxel.blt(459, 130, 1, 144, 112, 25, 20)
 
-        #exit TRUCK
+        # exit TRUCK
         pyxel.blt(0, 132, 1, 0, 120, 32, 63, 0)
-        #FAILS
-        pyxel.blt(300, 60, 1, 2, 64, 15, 16)
-        pyxel.blt(320, 60, 1, 2, 64, 15, 16)
-        pyxel.blt(340, 60, 1, 2, 64, 15, 16)
-        pyxel.blt(200, 60, 1, 26, 64, 15, 16)
-        pyxel.blt(180, 60, 1, 26, 64, 15, 16)
-        pyxel.blt(160, 60, 1, 26, 64, 15, 16)
 
-
-        #EXIT
-        pyxel.blt(7, 119, 1, 176, 112, 24, 8)
-
-
-        #SCORE
-        pyxel.blt(440, 70, 1, 64, 85, 8, 15)
-        pyxel.blt(460, 70, 1, 64, 85, 8, 15)
-        pyxel.blt(480, 70, 1, 64, 85, 8, 15)
-
-
-
-
-    # --- МЕТОД 2: МАЛЮЄМО ТЕ, ЩО СПЕРЕДУ (Щоб закрити пакунки) ---
+    # ---------------- foreground pillars ----------------
     def draw_foreground_pillars(self):
-        # Центральна колона (малюється ПОВЕРХ пакунків)
         pyxel.blt(243, 137, 2, 189, 10, 22, 108)
         pyxel.blt(243, 242, 2, 189, 106, 22, 9)
         pyxel.blt(243, 251, 2, 189, 106, 22, 9)
@@ -103,58 +92,173 @@ class Game:
         pyxel.blt(243, 269, 2, 189, 106, 22, 9)
         pyxel.blt(243, 278, 2, 189, 106, 22, 9)
 
+        # small conveyor drawn over pillar to match your layout
         pyxel.blt(341, 260, 0, 141, 112, 92, 10, 0)  # conveyor 0
 
+    # ---------------- spawn ----------------
     def package_generator(self):
-        self.spawn_timer += 1
+        # spawn only in playing state
+        if self.state != "playing":
+            return
 
-        # ВИПРАВЛЕННЯ: Прибрав while loop.
-        # Пакунки мають з'являтися по одному, з інтервалом.
-        # 180 кадрів = 6 секунд (при 30 FPS).
+        self.spawn_timer += 1
         if self.spawn_timer > 180:
             self.spawn_timer = 0
-            new_pack = Package(self.conveyor_y_positions,0)
+            new_pack = Package(self.conveyor_y_positions)
             self.packages.append(new_pack)
 
+    # ---------------- package updates ----------------
     def update_packages(self):
+        if self.state != "playing":
+            return
+
+        # update every package
         for p in self.packages:
             p.update(self.mario, self.luigi)
 
-            if not p.active:
-                if p.state == "falling":
-                    self.failed_packages += 1
-            else:
-                if p.state == "pass": #it is wrong as it will be adding until it fels.
-                    self.score += 1
+        # check results AFTER updates
+        new_list = []
+        for p in self.packages:
+            # package finished falling => trigger boss/pause
+            if not p.active and p.state == "falling":
+                # decide guilty based on x position (where it fell)
+                if p.x > 240:
+                    self.luigi_lives -= 1
+                    self.boss.appear("right")
+                    self.mario.set_scared()
+                    self.guilty = "mario"
+                else:
+                    self.mario_lives -= 1
+                    self.boss.appear("left")
+                    self.luigi.set_scared()
+                    self.guilty = "luigi"
 
-        self.packages = [p for p in self.packages if p.active]
+                # pause the game
+                self.state = "paused"
+                self.pause_timer = 60  # 2 seconds at 30 FPS
+                self.failed_packages += 1
 
+                # don't keep this package
+                continue
+
+            # successful delivery: if package became inactive via being delivered
+            if not p.active and p.state != "falling":
+                # treat as success
+                self.score += 1
+                continue
+
+            # keep active packages
+            if p.active:
+                new_list.append(p)
+
+        self.packages = new_list
+
+    # ---------------- main update ----------------
     def update(self):
+        # handle quitting
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
-        self.mario.update()
-        self.luigi.update()
-        self.package_generator()
-        self.update_packages()
 
+        # state: menu
+        if self.state == "menu":
+            if pyxel.btnp(pyxel.KEY_SPACE):
+                # reset everything and start
+                self.reset_game()
+                self.state = "playing"
+            return
+
+        # state: paused (boss active)
+        if self.state == "paused":
+            self.boss.update()
+            # decrement pause timer
+            self.pause_timer -= 1
+            # during pause: do not update packages or players
+            if self.pause_timer <= 0:
+                # end pause
+                self.state = "playing"
+                self.boss.active = False
+                # wake up guilty
+                if self.guilty == "mario":
+                    self.mario.end_scared()
+                elif self.guilty == "luigi":
+                    self.luigi.end_scared()
+                self.guilty = None
+            return
+
+        # state: gameover
+        if self.state == "gameover":
+            if pyxel.btnp(pyxel.KEY_SPACE):
+                self.reset_game()
+                self.state = "playing"
+            return
+
+        # playing state
+        if self.state == "playing":
+            self.mario.update()
+            self.luigi.update()
+            self.package_generator()
+            self.update_packages()
+
+            # check lives -> game over
+            if self.mario_lives <= 0 or self.luigi_lives <= 0:
+                self.state = "gameover"
+            return
+
+    # ---------------- reset ----------------
+    def reset_game(self):
+        self.mario = Mario(313, 235)
+        self.luigi = Luigi(173, 210)
+        self.boss = Boss()
+        self.mario_lives = 3
+        self.luigi_lives = 3
+        self.packages = [Package(self.conveyor_y_positions)]
+        self.spawn_timer = 0
+        self.score = 0
+        self.failed_packages = 0
+        self.pause_timer = 0
+        self.guilty = None
+
+    # ---------------- draw ----------------
     def draw(self):
         pyxel.cls(0)
 
-        # 1. ШАР 1: Фон (Стіни, конвеєри)
+        # background
         self.draw_background_static()
 
-        # 2. ШАР 2: Персонажі
+        # characters
         self.mario.draw()
         self.luigi.draw()
 
-        # 3. ШАР 3: Пакунки (вони будуть ПОВЕРХ фону, але ПІД колоною)
+        # packages (always drawn)
         for p in self.packages:
             p.draw()
 
-        # 4. ШАР 4: Передній план (Колона закриває пакунки)
+        # foreground pillars + small conveyor
         self.draw_foreground_pillars()
 
-        # HUD
+        # boss drawn on top if active
+        self.boss.draw()
+
+        # HUD: score & fails
         pyxel.text(5, 5, f"SCORE: {self.score}", 7)
         pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)
+
+        # lives
+        for i in range(self.mario_lives):
+            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
+        for i in range(self.luigi_lives):
+            pyxel.blt(300 + i * 20, 20, 1, 2, 64, 15, 16, 0)
+
+        # overlays
+        if self.state == "menu":
+            # centered title & instruction
+            pyxel.text(220, 70, "MARIO BROS FACTORY", 7)
+            pyxel.text(220, 80, "PRESS SPACE TO START", 8)
+        elif self.state == "paused":
+            # boss / guilty overlay: show message
+            pyxel.text(200, 100, "BOSS! He punished the worker!", 8)
+            pyxel.text(200, 110, "Game will resume soon...", 7)
+        elif self.state == "gameover":
+            pyxel.text(200, 100, "GAME OVER", 8)
+            pyxel.text(200, 110, "PRESS SPACE TO RESTART", 7)
 

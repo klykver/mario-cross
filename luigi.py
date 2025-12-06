@@ -18,6 +18,15 @@ class Luigi:
         self.state = "busy"
         self.busy_timer = 10
 
+    def set_scared(self):
+        self.state = "scared"
+        self.busy_timer = 60
+
+    def end_scared(self):
+        self.state = "idle"
+        self.busy_timer = 0
+        self.y = self.floor_y_position[self.floor]
+
     def _update_busy(self):
         if self.busy_timer > 0:
             self.busy_timer -= 1
@@ -28,13 +37,16 @@ class Luigi:
         if self.state == 'busy':
             self._update_busy()
             return
+        if self.state == 'scared':
+            if self.busy_timer > 0:
+                self.busy_timer -= 1
+            return
 
         if self.state == 'idle':
             if pyxel.btn(pyxel.KEY_W) and self.floor < self.max_floor:
                 self.floor += 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'
-
             elif pyxel.btn(pyxel.KEY_S) and self.floor > 0:
                 self.floor -= 1
                 self.target_y = self.floor_y_position[self.floor]
@@ -42,7 +54,6 @@ class Luigi:
 
         elif self.state == 'climbing':
             dist = self.target_y - self.y
-
             if abs(dist) <= self.climb_speed:
                 self.y = self.target_y
                 self.state = 'idle'
@@ -50,6 +61,10 @@ class Luigi:
                 self.y += self.climb_speed if dist > 0 else -self.climb_speed
 
     def draw(self):
+        if self.state == "scared":
+            pyxel.blt(self.x, self.y + 7, 0, 119, 35, 17, 29, 0)
+            return
+
         if self.state == 'busy':
             pyxel.blt(self.x, self.y, 0, 0, 32, 16, 34, 0)
             return
@@ -59,9 +74,11 @@ class Luigi:
                 pyxel.blt(self.x, self.y, 0, 24, 32, 14, 34, 0)
             else:
                 pyxel.blt(self.x, self.y, 0, 0, 32, 16, 34, 0)
+            return
 
-        elif self.state == 'climbing':
+        if self.state == 'climbing':
             if (pyxel.frame_count // 5) % 2 == 0:
                 pyxel.blt(self.x, self.y, 0, 72, 32, 15, 30, 0)
             else:
                 pyxel.blt(self.x, self.y, 0, 48, 32, 15, 33, 0)
+            return

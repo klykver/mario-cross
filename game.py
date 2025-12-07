@@ -2,6 +2,7 @@ from mario import Mario
 from luigi import Luigi
 from package import Package
 from boss import Boss
+from truck import Truck
 import pyxel
 
 
@@ -13,6 +14,7 @@ class Game:
         self.mario = Mario(313, 235)
         self.luigi = Luigi(173, 210)
         self.boss = Boss()
+        self.truck = Truck(50, 157)
 
         # game states: "menu", "playing", "paused", "gameover"
         self.state = "menu"
@@ -35,12 +37,17 @@ class Game:
         # стартовий пакунок
         self.packages.append(Package(self.conveyor_y_positions))
 
+        self.min_packages = 1  # minimum of packages in game
+        self.rise_min_per_score = 20  # after how many points the minimum increases
+
+
         pyxel.run(self.update, self.draw)
+
 
     # ---------------- background ----------------
     def draw_background_static(self):
         # Вантажівка
-        pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
+        #pyxel.blt(35, 157, 2, 178, 122, 70, 38, 0)
         # Труба
         pyxel.blt(406, 180, 0, 0, 184, 24, 72, 0)
 
@@ -102,10 +109,35 @@ class Game:
             return
 
         self.spawn_timer += 1
-        if self.spawn_timer > 180:
+        if self.spawn_timer > 400:
             self.spawn_timer = 0
             new_pack = Package(self.conveyor_y_positions)
             self.packages.append(new_pack)
+
+    def check_min_packages(self):
+        if self.state != "playing":
+            return
+        # calcular mínimo dinámico según score
+        changing_min = 1 + self.score // self.rise_min_per_score
+
+        if len(self.packages) < changing_min:
+            self.packages.append(Package(self.conveyor_y_positions))
+
+    # ------------- finding packages on the end of conveyor ----------------
+    def find_package_on_end(self):
+        """return the list of packages that are at the end of the conveyors"""
+        packages_on_end = []
+
+        for p in self.packages:
+            if p.active:
+                #right side
+                if p.x >=291 and p.direction == 1:
+                    packages_on_end.append(p)
+                #left side
+                if p.x <= 195 and p.direction == -1:
+                    packages_on_end.append(p)
+        return packages_on_end
+
 
     # ---------------- package updates ----------------
     def update_packages(self):
@@ -114,7 +146,11 @@ class Game:
 
         # update every package
         for p in self.packages:
+            prev_index = p.conveyor_index
             p.update(self.mario, self.luigi)
+            # add score when package moves to next conveyor by comparing the previous conveyor index with the current one.
+            if p.active and p.conveyor_index > prev_index:
+                self.score += 1
 
         # check results AFTER updates
         new_list = []
@@ -123,12 +159,13 @@ class Game:
             if not p.active and p.state == "falling":
                 # decide guilty based on x position (where it fell)
                 if p.x > 240:
-                    self.luigi_lives -= 1
+                    self.mario_lives -= 1
                     self.boss.appear("right")
                     self.mario.set_scared()
                     self.guilty = "mario"
+
                 else:
-                    self.mario_lives -= 1
+                    self.luigi_lives -= 1
                     self.boss.appear("left")
                     self.luigi.set_scared()
                     self.guilty = "luigi"
@@ -143,8 +180,19 @@ class Game:
 
             # successful delivery: if package became inactive via being delivered
             if not p.active and p.state != "falling":
-                # treat as success
-                self.score += 1
+                # Add package on truck
+                if not self.truck.is_full:
+                    self.truck.add_package()
+                    #check if truck is full
+                    if self.truck.is_full:
+                        # remove only the packages that are at the end of the conveyors
+                        for p in self.find_package_on_end():
+                            p.active = False
+                        # pause the game
+                        self.state = "paused"
+                        self.pause_timer = self.truck.DELIVERY_DURATION  # 4 seconds at 30 FPS
+                        self.score += 10        # add 10 points
+
                 continue
 
             # keep active packages
@@ -170,6 +218,7 @@ class Game:
         # state: paused (boss active)
         if self.state == "paused":
             self.boss.update()
+            self.truck.update()
             # decrement pause timer
             self.pause_timer -= 1
             # during pause: do not update packages or players
@@ -198,6 +247,8 @@ class Game:
             self.luigi.update()
             self.package_generator()
             self.update_packages()
+            self.truck.update()
+
 
             # check lives -> game over
             if self.mario_lives <= 0 or self.luigi_lives <= 0:
@@ -233,6 +284,10 @@ class Game:
         for p in self.packages:
             p.draw()
 
+        # truck and packages on truck
+        self.truck.draw()
+        self.truck.draw_packages()
+
         # foreground pillars + small conveyor
         self.draw_foreground_pillars()
 
@@ -245,9 +300,9 @@ class Game:
 
         # lives
         for i in range(self.mario_lives):
-            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
-        for i in range(self.luigi_lives):
             pyxel.blt(300 + i * 20, 20, 1, 2, 64, 15, 16, 0)
+        for i in range(self.luigi_lives):
+            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
 
         # overlays
         if self.state == "menu":
@@ -255,9 +310,13 @@ class Game:
             pyxel.text(220, 70, "MARIO BROS FACTORY", 7)
             pyxel.text(220, 80, "PRESS SPACE TO START", 8)
         elif self.state == "paused":
-            # boss / guilty overlay: show message
-            pyxel.text(200, 100, "BOSS! He punished the worker!", 8)
-            pyxel.text(200, 110, "Game will resume soon...", 7)
+            # full-truck / boss / guilty overlay: show message
+            if self.truck.is_full == True:
+                pyxel.text(200, 100, "TRUCK FULL! Delivering packages...", 8)
+            else:
+                pyxel.text(200, 100, "BOSS! He punished the worker!", 8)
+                pyxel.text(200, 110, "Game will resume soon...", 7)
+
         elif self.state == "gameover":
             pyxel.text(200, 100, "GAME OVER", 8)
             pyxel.text(200, 110, "PRESS SPACE TO RESTART", 7)

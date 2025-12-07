@@ -37,7 +37,12 @@ class Game:
         # стартовий пакунок
         self.packages.append(Package(self.conveyor_y_positions))
 
+        self.min_packages = 1  # minimum of packages in game
+        self.rise_min_per_score = 20  # after how many points the minimum increases
+
+
         pyxel.run(self.update, self.draw)
+
 
     # ---------------- background ----------------
     def draw_background_static(self):
@@ -103,19 +108,36 @@ class Game:
         if self.state != "playing":
             return
 
-        # count active packages on the conveyors
-        active_count = 0
-        for p in self.packages:
-            if p.active and (p.state == "drop" or p.state == "moving"):
-                active_count += 1
+        self.spawn_timer += 1
+        if self.spawn_timer > 400:
+            self.spawn_timer = 0
+            new_pack = Package(self.conveyor_y_positions)
+            self.packages.append(new_pack)
 
-        # only spawn a new package if there are less than 4 active packages
-        if active_count < 4:
-            self.spawn_timer += 1
-            if self.spawn_timer > 280:
-                self.spawn_timer = 0
-                new_pack = Package(self.conveyor_y_positions)
-                self.packages.append(new_pack)
+    def check_min_packages(self):
+        if self.state != "playing":
+            return
+        # calcular mínimo dinámico según score
+        changing_min = 1 + self.score // self.rise_min_per_score
+
+        if len(self.packages) < changing_min:
+            self.packages.append(Package(self.conveyor_y_positions))
+
+    # ------------- finding packages on the end of conveyor ----------------
+    def find_package_on_end(self):
+        """return the list of packages that are at the end of the conveyors"""
+        packages_on_end = []
+
+        for p in self.packages:
+            if p.active:
+                #right side
+                if p.x >=291 and p.direction == 1:
+                    packages_on_end.append(p)
+                #left side
+                if p.x <= 195 and p.direction == -1:
+                    packages_on_end.append(p)
+        return packages_on_end
+
 
     # ---------------- package updates ----------------
     def update_packages(self):
@@ -163,7 +185,11 @@ class Game:
                     self.truck.add_package()
                     #check if truck is full
                     if self.truck.is_full:
-                        self.state = "paused"  # pause the game
+                        # remove only the packages that are at the end of the conveyors
+                        for p in self.find_package_on_end():
+                            p.active = False
+                        # pause the game
+                        self.state = "paused"
                         self.pause_timer = self.truck.DELIVERY_DURATION  # 4 seconds at 30 FPS
                         self.score += 10        # add 10 points
 

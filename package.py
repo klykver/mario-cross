@@ -60,7 +60,7 @@ class Package:
             if self.move_timer >= self.move_interval:
                 self.move_timer = 0
                 self.y += 3
-            if self.y > 350:
+            if self.y > 280:
                 self.active = False
             return
 

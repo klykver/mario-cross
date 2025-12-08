@@ -131,10 +131,10 @@ class Game:
         for p in self.packages:
             if p.active:
                 #right side
-                if p.x >=291 and p.direction == 1:
+                if p.x >=281 and p.direction == 1: #10 px from the end
                     packages_on_end.append(p)
                 #left side
-                if p.x <= 195 and p.direction == -1:
+                if p.x <= 205 and p.direction == -1:
                     packages_on_end.append(p)
         return packages_on_end
 
@@ -246,6 +246,7 @@ class Game:
             self.mario.update()
             self.luigi.update()
             self.package_generator()
+            self.check_min_packages()
             self.update_packages()
             self.truck.update()
 

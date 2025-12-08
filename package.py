@@ -12,7 +12,7 @@ class Package:
         self.direction = -1
         self.conveyor_index = -1
 
-        self.speed = 10
+        self.speed = 10 #moves 10 pixelx every 50 frames
         self.active = True
         self.passed_center = False
 
@@ -121,3 +121,5 @@ class Package:
             return
         u, v, w, h = self.SPRITE_FRAMES[self.current_frame_index]
         pyxel.blt(self.x, self.y, 0, u, v, w, h, 0)
+
+

@@ -35,7 +35,7 @@ class Package:
         if not self.active:
             return
 
-        # DROP: from pipe to mario catch point
+        # 1. INITIAL DROP FROM THE PIPE
         if self.state == "drop":
             self.move_timer += 1
             if self.move_timer >= self.move_interval:
@@ -92,6 +92,7 @@ class Package:
                 self.passed_center = False
 
     def _check_edges(self, mario, luigi):
+        """ Detects if the package reached the end of the conveyor and interacts with Mario or Luigi. """
         # MARIO side (right)
         if self.conveyor_index % 2 != 0 and self.x >= 291:
             if mario.floor == (self.conveyor_index + 1) / 2 and mario.state == "idle":
@@ -106,16 +107,19 @@ class Package:
             return
 
         # LUIGI side (left)
+        # Checks if package is on an even conveyor and reached the left edge
         if self.conveyor_index % 2 == 0 and self.x <= 195:
+            # Check if Luigi is on the correct floor
             if luigi.floor == self.conveyor_index / 2 and luigi.state == "idle":
                 luigi.set_busy()
                 self.conveyor_index += 1
 
+                # If it was the last conveyor, it's delivered
                 if self.conveyor_index >= len(self.conveyor_y_position):
                     self.state = "delivered"
                     self.active = False
                     return
-
+                # Move to next conveyor
                 self.y = self.conveyor_y_position[self.conveyor_index]
                 self.direction = 1
                 self.x = 205

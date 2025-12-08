@@ -1,9 +1,11 @@
 import pyxel
 
+
 class Mario:
-    def __init__(self, x: int, move_controls:bool):
+    def __init__(self, x: int, move_controls: bool):
         self.x = x
         self.floor_y_position = [243, 195, 148]
+        # Use the internal attribute for floor to work with the property below
         self.floor = 0
         self.max_floor = len(self.floor_y_position) - 1
 
@@ -15,6 +17,19 @@ class Mario:
 
         self.state = 'idle'
         self.busy_timer = 0
+
+    @property
+    def state(self):
+        return self.__state
+
+    @state.setter
+    def state(self, value):
+        if not isinstance(value, str):
+            raise TypeError("state must be a string")
+        elif value not in ('idle', 'busy', 'scared', 'climbing'):
+            raise ValueError("State can be only 'idle', 'busy', 'scared' or 'climbing'")
+        else:
+            self.__state = value
 
     def set_busy(self):
         self.state = "busy"
@@ -36,7 +51,7 @@ class Mario:
             self.state = "idle"
 
     def update(self):
-        # busy or scared -> count down but don't accept input
+        # If Mario is busy or scared, he ignores input and just updates the timer
         if self.state == 'busy':
             self._update_busy()
             return
@@ -47,6 +62,7 @@ class Mario:
 
         # normal input
         if self.state == 'idle':
+            # Only allow movement if controls are enabled (not inverted or managed elsewhere)
             key_up = pyxel.KEY_UP
             key_down = pyxel.KEY_DOWN
 
@@ -58,6 +74,7 @@ class Mario:
                 self.floor += 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'
+                # Move Mario vertically towards the target floor
             elif pyxel.btn(key_down) and self.floor > 0:
                 self.floor -= 1
                 self.target_y = self.floor_y_position[self.floor]
@@ -65,6 +82,7 @@ class Mario:
 
         elif self.state == 'climbing':
             dist = self.target_y - self.y
+            # Snap to position if close enough, otherwise keep moving
             if abs(dist) <= self.climb_speed:
                 self.y = self.target_y
                 self.state = 'idle'

@@ -1,7 +1,8 @@
 import pyxel
 
+
 class Luigi:
-    def __init__(self, x: int, move_controls:bool):
+    def __init__(self, x: int, move_controls: bool):
         self.x = x
         self.floor_y_position = [210, 162, 114]
         self.floor = 0
@@ -15,6 +16,19 @@ class Luigi:
 
         self.state = 'idle'
         self.busy_timer = 0
+
+    @property
+    def state(self):
+        return self.__state
+
+    @state.setter
+    def state(self, value):
+        if not isinstance(value, str):
+            raise TypeError("state must be a string")
+        elif value not in ('idle', 'busy', 'scared', 'climbing'):
+            raise ValueError("State can be only 'idle', 'busy', 'scared' or 'climbing'")
+        else:
+            self.__state = value
 
     def set_busy(self):
         self.state = "busy"
@@ -76,9 +90,9 @@ class Luigi:
 
         if self.state == 'busy':
             if (pyxel.frame_count % 60) < 15:
-                pyxel.blt(self.x, self.y+ 11, 0, 144, 43, 24, 23, 0)
+                pyxel.blt(self.x, self.y + 11, 0, 144, 43, 24, 23, 0)
             else:
-                pyxel.blt(self.x, self.y , 0, 89, 32, 23, 31, 0)
+                pyxel.blt(self.x, self.y, 0, 89, 32, 23, 31, 0)
             return
 
         if self.state == 'idle':

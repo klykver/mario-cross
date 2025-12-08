@@ -1,11 +1,13 @@
 import pyxel
 
 class Luigi:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, move_controls:bool):
         self.x = x
         self.floor_y_position = [210, 162, 114]
         self.floor = 0
         self.max_floor = len(self.floor_y_position) - 1
+
+        self.move_controls = move_controls
 
         self.y = self.floor_y_position[0]
         self.target_y = self.y
@@ -43,11 +45,18 @@ class Luigi:
             return
 
         if self.state == 'idle':
-            if pyxel.btn(pyxel.KEY_W) and self.floor < self.max_floor:
+            key_up = pyxel.KEY_W
+            key_down = pyxel.KEY_S
+
+            if self.move_controls:
+                key_up = pyxel.KEY_S
+                key_down = pyxel.KEY_W
+
+            if pyxel.btn(key_up) and self.floor < self.max_floor:
                 self.floor += 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'
-            elif pyxel.btn(pyxel.KEY_S) and self.floor > 0:
+            elif pyxel.btn(key_down) and self.floor > 0:
                 self.floor -= 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'

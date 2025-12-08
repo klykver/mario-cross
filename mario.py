@@ -1,11 +1,13 @@
 import pyxel
 
 class Mario:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, move_controls:bool):
         self.x = x
         self.floor_y_position = [243, 195, 148]
         self.floor = 0
         self.max_floor = len(self.floor_y_position) - 1
+
+        self.move_controls = move_controls
 
         self.y = self.floor_y_position[0]
         self.target_y = self.y
@@ -45,11 +47,18 @@ class Mario:
 
         # normal input
         if self.state == 'idle':
-            if pyxel.btn(pyxel.KEY_UP) and self.floor < self.max_floor:
+            key_up = pyxel.KEY_UP
+            key_down = pyxel.KEY_DOWN
+
+            if self.move_controls:
+                key_up = pyxel.KEY_DOWN
+                key_down = pyxel.KEY_UP
+
+            if pyxel.btn(key_up) and self.floor < self.max_floor:
                 self.floor += 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'
-            elif pyxel.btn(pyxel.KEY_DOWN) and self.floor > 0:
+            elif pyxel.btn(key_down) and self.floor > 0:
                 self.floor -= 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'

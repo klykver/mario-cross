@@ -4,23 +4,63 @@ from package import Package
 from boss import Boss
 from truck import Truck
 import pyxel
+import random
 
 
 class Game:
     def __init__(self):
+
         pyxel.init(504, 280, title="Mario Bros Factory")
         pyxel.load("assets/sprites.pyxres")
 
-        self.mario = Mario(313, 235)
-        self.luigi = Luigi(173, 210)
+
+        # game states: "menu", "playing", "paused", "gameover"
+        self.state = "menu" # Гра починається з меню
+
+
+        # ПАРАМЕТРИ З ТАБЛИЦІ
+        self.levels = {
+            "Easy": {
+                "invert": False,
+                "spd_odd": 1.0,
+                "spd_even": 1.0,
+                "increase_min_pkg_per_score": 50,
+                "truck_eliminate_fail": 3
+            },
+            "Medium": {
+                "invert": False,
+                "spd_odd": 1.5,
+                "spd_even": 1,
+                "increase_min_pkg_per_score": 30,
+                "truck_eliminate_fail": 5
+
+            },
+            "Extreme": {
+                "invert": False,
+                "spd_odd": 2,
+                "spd_even": 1.5,
+                "increase_min_pkg_per_score": 30,
+                "truck_eliminate_fail": 5
+            },
+            "Crazy": {
+                "invert": True,
+                "spd_odd": random.randint(1, 2),
+                "spd_even": random.randint(1, 2),
+                "increase_min_pkg_per_score": 20,
+                "truck_eliminate_fail": None
+            }
+
+        }
+        self.selected_level_name = "Easy"  # the predifine level is easy
+        self.current_settings = self.levels["Easy"]  # store the selected level's parameters
+
+        self.mario = Mario(313, self.current_settings["invert"])
+        self.luigi = Luigi(173, self.current_settings["invert"])
         self.boss = Boss()
         self.truck = Truck(50, 157)
 
-        # game states: "menu", "playing", "paused", "gameover"
-        self.state = "menu"
+        self.mario_luigi_lives = 3
 
-        self.mario_lives = 3
-        self.luigi_lives = 3
 
         # Координати Y конвеєрів
         self.conveyor_y_positions = [234, 210, 186, 162, 138]
@@ -29,17 +69,17 @@ class Game:
         self.spawn_timer = 0
         self.score = 0
         self.failed_packages = 0
+        self.number_of_deliveries = 0
 
         # pause timer when boss appears / fall happens (frames)
         self.pause_timer = 0
         self.guilty = None  # "mario" or "luigi"
 
         # стартовий пакунок
-        self.packages.append(Package(self.conveyor_y_positions))
+        self.packages.append(Package(self.conveyor_y_positions,10,self.current_settings["spd_even"],self.current_settings["spd_odd"]))
+
 
         self.min_packages = 1  # minimum of packages in game
-        self.rise_min_per_score = 20  # after how many points the minimum increases
-
 
         pyxel.run(self.update, self.draw)
 
@@ -111,17 +151,17 @@ class Game:
         self.spawn_timer += 1
         if self.spawn_timer > 400:
             self.spawn_timer = 0
-            new_pack = Package(self.conveyor_y_positions)
+            new_pack = Package(self.conveyor_y_positions,10,self.current_settings["spd_even"],self.current_settings["spd_odd"])
             self.packages.append(new_pack)
 
     def check_min_packages(self):
         if self.state != "playing":
             return
         # calcular mínimo dinámico según score
-        changing_min = 1 + self.score // self.rise_min_per_score
+        changing_min = 1 + self.score // self.current_settings["increase_min_pkg_per_score"]
 
         if len(self.packages) < changing_min:
-            self.packages.append(Package(self.conveyor_y_positions))
+            self.packages.append(Package(self.conveyor_y_positions,10,self.current_settings["spd_even"],self.current_settings["spd_odd"]))
 
     # ------------- finding packages on the end of conveyor ----------------
     def find_package_on_end(self):
@@ -139,6 +179,25 @@ class Game:
         return packages_on_end
 
 
+    # ---------------- select difficulties ----------------
+    def select_difficulty(self):
+        """Change difficulty using 1-4 numbers on the keyboard."""
+
+        if pyxel.btnp(pyxel.KEY_1):
+            self.selected_level_name = "Easy"
+
+        if pyxel.btnp(pyxel.KEY_2):
+            self.selected_level_name = "Medium"
+
+        if pyxel.btnp(pyxel.KEY_3):
+            self.selected_level_name = "Extreme"
+
+        if pyxel.btnp(pyxel.KEY_4):
+            self.selected_level_name = "Crazy"
+
+        # we stor the difficulties parameters
+        self.current_settings = self.levels[self.selected_level_name]
+
     # ---------------- package updates ----------------
     def update_packages(self):
         if self.state != "playing":
@@ -152,6 +211,7 @@ class Game:
             if p.active and p.conveyor_index > prev_index:
                 self.score += 1
 
+
         # check results AFTER updates
         new_list = []
         for p in self.packages:
@@ -159,13 +219,13 @@ class Game:
             if not p.active and p.state == "falling":
                 # decide guilty based on x position (where it fell)
                 if p.x > 240:
-                    self.mario_lives -= 1
+                    self.mario_luigi_lives -= 1
                     self.boss.appear("right")
                     self.mario.set_scared()
                     self.guilty = "mario"
 
                 else:
-                    self.luigi_lives -= 1
+                    self.mario_luigi_lives -= 1
                     self.boss.appear("left")
                     self.luigi.set_scared()
                     self.guilty = "luigi"
@@ -192,6 +252,7 @@ class Game:
                         self.state = "paused"
                         self.pause_timer = self.truck.DELIVERY_DURATION  # 4 seconds at 30 FPS
                         self.score += 10        # add 10 points
+                        self.number_of_deliveries += 1
 
                 continue
 
@@ -209,8 +270,9 @@ class Game:
 
         # state: menu
         if self.state == "menu":
+            self.select_difficulty()
+
             if pyxel.btnp(pyxel.KEY_SPACE):
-                # reset everything and start
                 self.reset_game()
                 self.state = "playing"
             return
@@ -251,23 +313,28 @@ class Game:
 
 
             # check lives -> game over
-            if self.mario_lives <= 0 or self.luigi_lives <= 0:
+            if self.number_of_deliveries == self.current_settings["truck_eliminate_fail"]:
+                self.number_of_deliveries = 0
+                self.mario_luigi_lives += 1
+            if self.mario_luigi_lives <= 0 :
                 self.state = "gameover"
             return
 
     # ---------------- reset ----------------
     def reset_game(self):
-        self.mario = Mario(313, 235)
-        self.luigi = Luigi(173, 210)
+        self.mario = Mario(313, self.current_settings["invert"])
+        self.luigi = Luigi(173, self.current_settings["invert"])
         self.boss = Boss()
-        self.mario_lives = 3
-        self.luigi_lives = 3
-        self.packages = [Package(self.conveyor_y_positions)]
+        self.mario_luigi_lives = 3
+        self.packages = []
+        self.packages = [Package(self.conveyor_y_positions,10,self.current_settings["spd_even"],self.current_settings["spd_odd"])]
         self.spawn_timer = 0
         self.score = 0
         self.failed_packages = 0
         self.pause_timer = 0
         self.guilty = None
+        self.number_of_deliveries = 0
+        self.truck.packages_on_truck = []
 
     # ---------------- draw ----------------
     def draw(self):
@@ -299,16 +366,20 @@ class Game:
         pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)
 
         # lives
-        for i in range(self.mario_lives):
-            pyxel.blt(300 + i * 20, 20, 1, 2, 64, 15, 16, 0)
-        for i in range(self.luigi_lives):
-            pyxel.blt(160 + i * 20, 20, 1, 26, 64, 15, 16, 0)
+        for i in range(self.mario_luigi_lives):
+            pyxel.blt(225 + i * 20, 20, 1, 2, 64, 15, 16, 0)
 
         # overlays
         if self.state == "menu":
             # centered title & instruction
             pyxel.text(220, 70, "MARIO BROS FACTORY", 7)
             pyxel.text(220, 80, "PRESS SPACE TO START", 8)
+            pyxel.text(220, 90, "SELECT DIFFICULTY:", 10)
+            pyxel.text(300, 90, "1 - EASY",7)
+            pyxel.text(300, 100, "2 - MEDIUM",7)
+            pyxel.text(300, 110, "3 - EXTREME", 7)
+            pyxel.text(300, 120, "4 - CRAZY", 7)
+
         elif self.state == "paused":
             # full-truck / boss / guilty overlay: show message
             if self.truck.is_full == True:

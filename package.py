@@ -2,7 +2,7 @@ import pyxel
 
 
 class Package:
-    def __init__(self, conveyor_y_position: list, start_floor: int = 0):
+    def __init__(self, conveyor_y_position: list, speed: int, speed_even: float, speed_odd: float):
         self.conveyor_y_position = conveyor_y_position
 
         # SPAWN FROM PIPE
@@ -12,7 +12,9 @@ class Package:
         self.direction = -1
         self.conveyor_index = -1
 
-        self.speed = 10
+        self.speed = speed #10
+        self.speed_even = speed_even
+        self.speed_odd = speed_odd
         self.active = True
         self.passed_center = False
 
@@ -69,9 +71,15 @@ class Package:
             self.move_timer += 1
             if self.move_timer >= self.move_interval:
                 self.move_timer = 0
-                self.x += self.speed * self.direction
-                self._update_animation()
-                self._check_edges(mario, luigi)
+                if self.conveyor_index == -1:
+                    self.x += self.speed * self.direction
+                else:
+                    if self.conveyor_index % 2:
+                        self.x += self.speed * self.speed_even * self.direction
+                    else:
+                        self.x += self.speed * self.speed_odd * self.direction
+                    self._update_animation()
+                    self._check_edges(mario, luigi)
 
     def _update_animation(self):
         # simple: toggle frame when crossing center; safe wrap

@@ -49,7 +49,7 @@ class Package:
                     mario.set_busy()
                     self.conveyor_index = 0
                     self.x = 283
-                    self.y = 234
+                    self.y = self.conveyor_y_position[self.conveyor_index]
                     self.direction = -1
                     self.state = "moving"
                 else:
@@ -61,25 +61,23 @@ class Package:
             self.move_timer += 7
             if self.move_timer >= self.move_interval:
                 self.move_timer = 0
-                self.y += 3
+                self.y += self.speed
             if self.y > 280:
                 self.active = False
             return
 
         # MOVING on conveyor
         if self.state == "moving":
-            self.move_timer += 1
+            if self.conveyor_index % 2:
+                self.move_timer += self.speed_even
+            else:
+                self.move_timer += self.speed_odd
+
             if self.move_timer >= self.move_interval:
                 self.move_timer = 0
-                if self.conveyor_index == -1:
-                    self.x += self.speed * self.direction
-                else:
-                    if self.conveyor_index % 2:
-                        self.x += self.speed * self.speed_even * self.direction
-                    else:
-                        self.x += self.speed * self.speed_odd * self.direction
-                    self._update_animation()
-                    self._check_edges(mario, luigi)
+                self.x += self.speed * self.direction
+                self._update_animation()
+                self._check_edges(mario, luigi)
 
     def _update_animation(self):
         # simple: toggle frame when crossing center; safe wrap

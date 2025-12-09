@@ -22,7 +22,6 @@ class Game:
         self.packages = []
         self.spawn_timer = 0
         self.score = 0
-        self.failed_packages = 0
         self.number_of_deliveries = 0
         self.pause_timer = 0
         self.guilty = None
@@ -184,18 +183,6 @@ class Game:
             raise ValueError("Score cannot be negative.")
         self.__score = value
 
-    # ---------------- FAILED PACKAGES ----------------
-    @property
-    def failed_packages(self):
-        """Return the number of failed packages."""
-        return self.__failed_packages
-
-    @failed_packages.setter
-    def failed_packages(self, value):
-        """Cannot be negative."""
-        if value < 0:
-            raise ValueError("Cannot have negative failed packages.")
-        self.__failed_packages = value
 
     # ---------------- DELIVERIES ----------------
     @property
@@ -404,7 +391,7 @@ class Game:
                 # pause the game
                 self.state = "paused"
                 self.pause_timer = 60  # 2 seconds at 30 FPS
-                self.failed_packages += 1
+
 
 
             # successful delivery: if package became inactive, because it reached the truck
@@ -504,7 +491,6 @@ class Game:
         self.packages = [Package(self.conveyor_y_positions,10,self.current_settings["spd_even"],self.current_settings["spd_odd"])]
         self.spawn_timer = 0
         self.score = 0
-        self.failed_packages = 0
         self.pause_timer = 0
         self.guilty = None
         self.number_of_deliveries = 0
@@ -537,9 +523,9 @@ class Game:
         # boss drawn on top if active
         self.boss.draw()
 
-        # HUD: score & fails
+        # HUD: score
         pyxel.text(5, 5, f"SCORE: {self.score}", 7)
-        pyxel.text(5, 15, f"FAILED: {self.failed_packages}", 8)
+
 
         # lives
         for i in range(self.mario_luigi_lives):

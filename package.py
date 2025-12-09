@@ -28,8 +28,52 @@ class Package:
             (0, 116, 15, 9),  # 5
         ]
         self.current_frame_index = 0
-        self.move_timer = 0  # contador de frames
-        self.move_interval = 50  # cada cuántos frames se mueve un pixel (ajusta para “saltado”)
+        self.move_timer = 0  # frame timer
+        self.move_interval = 50  # every 50 frames the package moves
+
+    @property
+    def state(self):
+        return self.__state
+
+    @state.setter
+    def state(self, value):
+        if value not in ("drop", "falling", "moving", "delivered"):
+            raise ValueError("Invalid package state.")
+        self.__state = value
+
+
+    @property
+    def speed(self ):
+        return self.__speed
+
+    @speed.setter
+    def speed(self, value):
+        if value < 0:
+            raise ValueError("Speed cannot be negative.")
+        self.__speed = value
+
+    @property
+    def speed_even(self):
+        return self.__speed_even
+
+    @speed_even.setter
+    def speed_even(self, value):
+        if value < 0:
+            raise ValueError("Speed cannot be negative.")
+        self.__speed_even = value
+
+    @property
+    def speed_odd(self):
+        return self.__speed_odd
+
+    @speed_odd.setter
+    def speed_odd(self, value):
+        if value < 0:
+            raise ValueError("Speed cannot be negative.")
+        self.__speed_odd = value
+
+
+
 
     def update(self, mario, luigi):
         if not self.active:

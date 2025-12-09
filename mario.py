@@ -4,11 +4,13 @@ import pyxel
 class Mario:
     def __init__(self, x: int, move_controls: bool):
         self.x = x
+        # possible positions of floors
         self.floor_y_position = [243, 195, 148]
-        # Use the internal attribute for floor to work with the property below
+        # current floor
         self.floor = 0
         self.max_floor = len(self.floor_y_position) - 1
 
+        # key to move Mario
         self.move_controls = move_controls
 
         self.y = self.floor_y_position[0]
@@ -31,19 +33,33 @@ class Mario:
         else:
             self.__state = value
 
+    @property
+    def move_controls(self):
+        return self.__move_controls
+
+    @move_controls.setter
+    def move_controls(self, value):
+        if not isinstance(value, bool):
+            raise TypeError("move_controls must be a boolean")
+        self.__move_controls = value
+
+    # it is activated when Mario moves packages
     def set_busy(self):
         self.state = "busy"
         self.busy_timer = 10
 
+    # it is activated when Mario  loses a package
     def set_scared(self):
         self.state = "scared"
         self.busy_timer = 60  # lasts while pause is active (approx 2s)
 
+    # it is activated for Mario to return to idle state and the corresponding floor
     def end_scared(self):
         self.state = "idle"
         self.busy_timer = 0
         self.y = self.floor_y_position[self.floor]
 
+    # it is a timer for the duration of the busy state and the scared state
     def _update_busy(self):
         if self.busy_timer > 0:
             self.busy_timer -= 1
@@ -52,24 +68,27 @@ class Mario:
 
     def update(self):
         # If Mario is busy or scared, he ignores input and just updates the timer
+        # When Mario is busy
         if self.state == 'busy':
             self._update_busy()
             return
+        # When Mario is scared
         if self.state == 'scared':
             if self.busy_timer > 0:
                 self.busy_timer -= 1
             return
 
+        # when Luigi is moving and ready to receive a package
         # normal input
         if self.state == 'idle':
-            # Only allow movement if controls are enabled (not inverted or managed elsewhere)
+            # create some local variables to make the change of controls easier
             key_up = pyxel.KEY_UP
             key_down = pyxel.KEY_DOWN
-
+            # if controls are inverted, change the keys
             if self.move_controls:
                 key_up = pyxel.KEY_DOWN
                 key_down = pyxel.KEY_UP
-
+            # if the keys are pressed, change the floor
             if pyxel.btn(key_up) and self.floor < self.max_floor:
                 self.floor += 1
                 self.target_y = self.floor_y_position[self.floor]
@@ -79,7 +98,7 @@ class Mario:
                 self.floor -= 1
                 self.target_y = self.floor_y_position[self.floor]
                 self.state = 'climbing'
-
+        # when Luigi is climbing to a floor. During the distance the climbing animation is played
         elif self.state == 'climbing':
             dist = self.target_y - self.y
             # Snap to position if close enough, otherwise keep moving
@@ -89,6 +108,7 @@ class Mario:
             else:
                 self.y += self.climb_speed if dist > 0 else -self.climb_speed
 
+    # Draw the Luigi sprite. The sprite changes depending on the state. The animation is also played.
     def draw(self):
         # scared state: show lying sprite shifted slightly down
         if self.state == "scared":

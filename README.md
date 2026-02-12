@@ -19,3 +19,10 @@ The game is inspired by classic 80s dual-screen handheld consoles.
 ```bash
 pip install pyxel
 python main.py
+
+## 📸 Gameplay
+
+![Gameplay](screenshots/gameplay1.png)
+![Gameplay](screenshots/gameplay2.png)
+![Gameplay](screenshots/gameplay3.png)
+![Gameplay](screenshots/gameplay4.png)

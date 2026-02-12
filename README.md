@@ -13,16 +13,17 @@ The game is inspired by classic 80s dual-screen handheld consoles.
 - Python
 - Pyxel
 - Object-Oriented Programming
-
+```markdown
 ## ▶️ How to Run
 
-```bash
-pip install pyxel
+pip install pyxel  
 python main.py
-
+```
 ## 📸 Gameplay
 
 ![Gameplay](screenshots/gameplay1.png)
 ![Gameplay](screenshots/gameplay2.png)
 ![Gameplay](screenshots/gameplay3.png)
 ![Gameplay](screenshots/gameplay4.png)
+
+
